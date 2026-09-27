@@ -1,0 +1,146 @@
+All files are now fully read. Here is the complete findings report.
+
+---
+
+## TASK 06 â€” Findings Report: RUBICON Verifier & Adapters
+
+### 1. All 5 Adapter Files and Their State Domains
+
+| File | Class | State Domain(s) Covered |
+|---|---|---|
+| [`filesystem_adapter.py`](core/adapters/filesystem_adapter.py) | `FilesystemAdapter` | `WORKSPACE_TRACKED`, `WORKSPACE_IGNORED`, `WORKSPACE_EXCLUDED`, `OUTSIDE_WORKSPACE` |
+| [`git_adapter.py`](core/adapters/git_adapter.py) | `GitAdapter` | `VCS_LOCAL`, `VCS_REMOTE` |
+| [`sqlite_adapter.py`](core/adapters/sqlite_adapter.py) | `SQLiteAdapter` | `DATABASE_STATE` |
+| [`http_fixture_adapter.py`](core/adapters/http_fixture_adapter.py) | `HTTPFixtureAdapter` | `EXTERNAL_NETWORK` |
+| [`process_adapter.py`](core/adapters/process_adapter.py) | `ProcessAdapter` | `PROCESS_RUNTIME` |
+
+---
+
+### 2. Reconciler Uses 3 Manifest Snapshots âœ… CONFIRMED
+
+In [`reconciler.py`](core/verifier/reconciler.py:62), the [`reconcile()`](core/verifier/reconciler.py:62) method signature explicitly accepts three named manifests:
+
+```python
+def reconcile(self, pre: Manifest, post_action: Manifest, post_rollback: Manifest, ...)
+```
+
+The module docstring on line 7 states:
+> Compares: `pre_manifest â†’ post_action_manifest â†’ post_rollback_manifest`
+
+The `Manifest` dataclass in [`manifest.py`](core/manifests/manifest.py:52) has a `manifest_type` field (line 56) with valid values `"baseline"`, `"post_action"`, and `"post_rollback"`, formally encoding all three checkpoints.
+
+---
+
+### 3. `DomainVerificationResult` Has All 5 Values âœ… CONFIRMED
+
+Defined in [`models.py`](core/models.py:77):
+
+```python
+class DomainVerificationResult(str, Enum):
+    RESTORED        = "RESTORED"
+    REMAINS_CHANGED = "REMAINS_CHANGED"
+    NEVER_COVERED   = "NEVER_COVERED"
+    NOT_OBSERVABLE  = "NOT_OBSERVABLE"
+    CONTRADICTED    = "CONTRADICTED"
+```
+
+All 5 specified values are present. Note: `NEVER_COVERED` is declared in the enum but is not yet emitted by the current reconciler logic (the reconciler produces `RESTORED`, `REMAINS_CHANGED`, `NOT_OBSERVABLE`, or `CONTRADICTED` via its branching). It is reserved for future use but the contract is structurally complete.
+
+---
+
+### 4. `ReceiptVerdict` Has All 4 Values âœ… CONFIRMED
+
+Defined in [`models.py`](core/models.py:89):
+
+```python
+class ReceiptVerdict(str, Enum):
+    RESTORED = "RESTORED"
+    PARTIAL  = "PARTIAL"
+    BREACH   = "BREACH"
+    UNKNOWN  = "UNKNOWN"
+```
+
+Verdict logic in [`reconciler.py`](core/verifier/reconciler.py:172):
+- All domains `RESTORED` â†’ `RESTORED`
+- Any `REMAINS_CHANGED` + some `RESTORED` â†’ `PARTIAL`
+- Any `REMAINS_CHANGED` + none `RESTORED` â†’ `BREACH`
+- Any `NOT_OBSERVABLE` (with no breach) â†’ `UNKNOWN`
+
+---
+
+### 5. Receipt Is Signed with Ed25519 âœ… CONFIRMED
+
+In [`reconciler.py`](core/verifier/reconciler.py:23), the import is:
+
+```python
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+```
+
+The actual signing call at line 102:
+
+```python
+sig = self._priv_key.sign(receipt.signable_bytes())
+receipt.signature = sig.hex()
+```
+
+The `signable_bytes()` method in [`models.py`](core/models.py:176) serializes the entire receipt as deterministic JSON with the `signature` field removed â€” so the signature binds the full claim-relevant state, exactly as required by Section 11.6. This is **real Ed25519 cryptographic signing**, not a simple hash.
+
+---
+
+### 6. Reconciler Does NOT Trust Bob's Self-Report âœ… CONFIRMED
+
+The class docstring at [`reconciler.py`](core/verifier/reconciler.py:43) states explicitly:
+
+> **Does NOT rely on Bob's own report of success.**  
+> Each domain is verified independently by its adapter.
+
+The mechanism: each adapter's [`hash_state()`](core/adapters/filesystem_adapter.py:26) method reads data from the manifest snapshots captured **independently** by the `ManifestCapturer` â€” which calls `git ls-files`, `git rev-parse`, reads actual file bytes, reads process lists, etc. The reconciler never reads Bob's internal state or accepts Bob's claim of what changed. It re-hashes the raw domain state from each manifest snapshot itself.
+
+Notably, the `SQLiteAdapter` makes this even stronger: its [`hash_state()`](core/adapters/sqlite_adapter.py:25) **ignores the manifest argument entirely** and always re-reads directly from the database file on disk (line 31: `return self._hash_db_file()`). Same for `HTTPFixtureAdapter` â€” it reads from the running event log server independently (line 140: `return self._store.hash()`).
+
+---
+
+### 7. The 3 Adapter Methods Called Per Manifest Snapshot
+
+In [`reconciler.py`](core/verifier/reconciler.py:126), `_reconcile_domain()` calls exactly **one method per adapter, three times** â€” once for each manifest:
+
+```python
+pre_hash          = adapter.hash_state(pre)
+post_action_hash  = adapter.hash_state(post_action)
+post_rollback_hash = adapter.hash_state(post_rollback)
+```
+
+The single method called on each adapter is **`hash_state(manifest)`** â€” called three times with three different manifest objects. Each adapter class implements this method:
+
+| Adapter | `hash_state()` reads from |
+|---|---|
+| `FilesystemAdapter` | `manifest.tracked_files` â€” the captured file inventory |
+| `GitAdapter` | `manifest.git_state` â€” the captured git snapshot |
+| `ProcessAdapter` | `manifest.process_snapshot` â€” the captured process list |
+| `SQLiteAdapter` | Ignores manifest; re-reads raw DB file bytes directly |
+| `HTTPFixtureAdapter` | Ignores manifest; re-reads the live event log directly |
+
+---
+
+### 8. What Happens When an Adapter Raises an Exception
+
+In [`reconciler.py`](core/verifier/reconciler.py:126), the three `hash_state()` calls are wrapped in a `try/except`:
+
+```python
+try:
+    pre_hash          = adapter.hash_state(pre)
+    post_action_hash  = adapter.hash_state(post_action)
+    post_rollback_hash = adapter.hash_state(post_rollback)
+except Exception as exc:
+    return DomainResult(
+        domain=domain,
+        result=DomainVerificationResult.NOT_OBSERVABLE,
+        notes=f"Adapter error: {exc}",
+    )
+```
+
+**Result:** Any unhandled exception from any adapter during any of the three `hash_state()` calls causes the entire domain to be tagged `NOT_OBSERVABLE`, with the exception message recorded in `notes`. This propagates upstream:
+- The domain appears in the receipt's `limitations` list (via `_compute_limitations()`, line 186)
+- If no `REMAINS_CHANGED` domain exists, the overall `ReceiptVerdict` rolls to `UNKNOWN` (line 182)
+
+This is the correct fail-safe behaviour: an adapter crash means Rubicon **cannot make a claim** about that domain â€” it does not silently pass or fail the domain, and it does not halt the entire reconciliation. Other domains continue to be evaluated independently.

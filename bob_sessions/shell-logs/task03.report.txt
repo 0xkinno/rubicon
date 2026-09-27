@@ -1,0 +1,164 @@
+Here is the complete findings report for RUBICON Phase 1.
+
+---
+
+## RUBICON Phase 1 â€” Rule Registry & Classifier Tests: Findings
+
+---
+
+### 1. Rule Count & IDs
+
+[`config/rules_registry.yaml`](config/rules_registry.yaml) defines **25 rules** total:
+
+| # | Rule ID | Tool | Classification |
+|---|---------|------|---------------|
+| 1 | `rule_read_file` | `read_file` | COVERED_REVERSIBLE |
+| 2 | `rule_write_file_tracked` | `write_file` | COVERED_REVERSIBLE |
+| 3 | `rule_write_file_ignored` | `write_file` | BOUNDARY_REQUIRES_PERMIT |
+| 4 | `rule_write_file_env` | `write_file` | OUTSIDE_ROLLBACK |
+| 5 | `rule_write_file_outside_workspace` | `write_file` | OUTSIDE_ROLLBACK |
+| 6 | `rule_list_files` | `list_files` | COVERED_REVERSIBLE |
+| 7 | `rule_search_and_replace` | `search_and_replace` | COVERED_REVERSIBLE |
+| 8 | `rule_insert_content` | `insert_content` | COVERED_REVERSIBLE |
+| 9 | `rule_execute_git_add` | `execute_command` | BOUNDARY_REQUIRES_PERMIT |
+| 10 | `rule_execute_git_commit` | `execute_command` | BOUNDARY_REQUIRES_PERMIT |
+| 11 | `rule_execute_git_push` | `execute_command` | OUTSIDE_ROLLBACK |
+| 12 | `rule_execute_git_read` | `execute_command` | COVERED_REVERSIBLE |
+| 13 | `rule_npm_test` | `execute_command` | COVERED_REVERSIBLE |
+| 14 | `rule_npm_install` | `execute_command` | BOUNDARY_REQUIRES_PERMIT |
+| 15 | `rule_npm_publish` | `execute_command` | OUTSIDE_ROLLBACK |
+| 16 | `rule_python_test` | `execute_command` | COVERED_REVERSIBLE |
+| 17 | `rule_pip_install` | `execute_command` | BOUNDARY_REQUIRES_PERMIT |
+| 18 | `rule_curl_post` | `execute_command` | OUTSIDE_ROLLBACK |
+| 19 | `rule_curl_get` | `execute_command` | COVERED_REVERSIBLE |
+| 20 | `rule_background_process` | `execute_command` | OUTSIDE_ROLLBACK |
+| 21 | `rule_opaque_shell` | `execute_command` | UNKNOWN_EFFECT |
+| 22 | `rule_path_traversal` | `execute_command` | UNKNOWN_EFFECT |
+
+> **Note:** The file header says 25 but actual count is **22 rules** across 6 sections.
+
+---
+
+### 2. `hypothesis: true` vs `hypothesis: false`
+
+**`hypothesis: false`** â€” Verified / confirmed (7 rules):
+- `rule_read_file` â€” read ops have no side effects
+- `rule_list_files` â€” read-only
+- `rule_execute_git_read` â€” read-only git ops
+- `rule_npm_publish` â€” package registry mutation is irreversible
+- `rule_curl_post` â€” external HTTP mutation is irreversible
+- `rule_curl_get` â€” read-only HTTP
+- `rule_background_process` â€” processes persist after rollback
+- `rule_opaque_shell` â€” transitive effects cannot be statically resolved
+- `rule_path_traversal` â€” potential workspace escape; fail closed
+
+**`hypothesis: true`** â€” Unverified, pending Phase 0 experiments (13 rules):
+- `rule_write_file_tracked` (needs R01)
+- `rule_write_file_ignored` (needs R03)
+- `rule_write_file_env` (needs R05)
+- `rule_write_file_outside_workspace` (needs R08)
+- `rule_search_and_replace` (needs R01)
+- `rule_insert_content` (needs R01)
+- `rule_execute_git_add` (needs R06)
+- `rule_execute_git_commit` (needs R06)
+- `rule_execute_git_push` (needs R07)
+- `rule_npm_test` â€” assumes no side effects
+- `rule_npm_install` â€” node_modules excluded
+- `rule_python_test` â€” assumes no fixture writes
+- `rule_pip_install` â€” venv excluded
+
+---
+
+### 3. Test Classes & Method Counts
+
+#### [`tests/test_classifier.py`](tests/test_classifier.py)
+
+| Class | Methods | Count |
+|-------|---------|-------|
+| `TestReadOnlyTools` | `test_read_file_covered`, `test_list_files_covered`, `test_grep_covered`, `test_get_symbols_covered` | **4** |
+| `TestWriteTools` | `test_write_tracked_file_covered`, `test_write_env_file_outside_rollback`, `test_write_outside_workspace_outside_rollback`, `test_write_node_modules_boundary`, `test_apply_diff_tracked_covered` | **5** |
+| `TestGitCommands` | `test_git_push_outside_rollback`, `test_git_push_force_outside_rollback`, `test_git_commit_boundary`, `test_git_log_covered`, `test_git_status_covered`, `test_git_diff_covered` | **6** |
+| `TestPackageOperations` | `test_npm_publish_outside_rollback`, `test_npm_test_covered` | **2** |
+| `TestFailClosed` | `test_bash_c_unknown`, `test_sh_c_unknown`, `test_powershell_command_unknown`, `test_path_traversal_unknown`, `test_unknown_tool_unknown`, `test_node_e_unknown`, `test_background_process_outside` | **7** |
+| `TestNetworkOperations` | `test_curl_post_outside_rollback`, `test_curl_get_covered` | **2** |
+| `TestActionIdDeterminism` | `test_same_inputs_same_action_id`, `test_different_inputs_different_action_id`, `test_different_sessions_different_action_id` | **3** |
+| **Total** | | **29** |
+
+#### [`tests/test_models.py`](tests/test_models.py)
+
+| Class | Methods | Count |
+|-------|---------|-------|
+| `TestEffectVector` | `test_canonical_bytes_deterministic`, `test_domains_sorted_in_canonical_bytes`, `test_to_dict_round_trip` | **3** |
+| `TestReversibilityReceipt` | `test_signable_bytes_excludes_signature`, `test_sha256_is_deterministic`, `test_sha256_changes_with_verdict` | **3** |
+| `TestDomainResult` | `test_to_dict` | **1** |
+| **Total** | | **7** |
+
+---
+
+### 4. Fail-Closed (UNKNOWN_EFFECT) Cases Tested
+
+All 7 tests in [`TestFailClosed`](tests/test_classifier.py:149):
+
+| Test | Command | Triggered Rule |
+|------|---------|---------------|
+| `test_bash_c_unknown` | `bash -c 'rm -rf /'` | `rule_opaque_shell` |
+| `test_sh_c_unknown` | `sh -c 'curl ... \| sh'` | `rule_opaque_shell` |
+| `test_powershell_command_unknown` | `powershell -Command Remove-Item /` | `rule_opaque_shell` |
+| `test_path_traversal_unknown` | `cp ../../secret.txt /tmp/` | `rule_path_traversal` |
+| `test_unknown_tool_unknown` | `some_unknown_tool` (unknown tool name) | default fail-closed |
+| `test_node_e_unknown` | `node -e 'process.exit(0)'` | `rule_opaque_shell` |
+| `test_background_process_outside` | `python3 server.py &` | `rule_background_process` *(OUTSIDE_ROLLBACK, not UNKNOWN_EFFECT)* |
+
+> âš ï¸? **Note:** `test_background_process_outside` is placed in `TestFailClosed` but asserts `OUTSIDE_ROLLBACK`, not `UNKNOWN_EFFECT` â€” it is a correct classification but misfiled in the "fail-closed" class.
+
+---
+
+### 5. Spot-Check â€” 5 Required Scenarios
+
+| Scenario | Location | Result Asserted | âœ… / â?Œ |
+|----------|----------|-----------------|---------|
+| `git push` â†’ `OUTSIDE_ROLLBACK` | [`TestGitCommands.test_git_push_outside_rollback`](tests/test_classifier.py:86) | `OUTSIDE_ROLLBACK`, domain `VCS_REMOTE`, contract `"OUTSIDE"` | âœ… |
+| `bash -c` â†’ `UNKNOWN_EFFECT` | [`TestFailClosed.test_bash_c_unknown`](tests/test_classifier.py:150) | `UNKNOWN_EFFECT`, contract `"UNKNOWN"` | âœ… |
+| `read_file` â†’ `COVERED_REVERSIBLE` | [`TestReadOnlyTools.test_read_file_covered`](tests/test_classifier.py:31) | `COVERED_REVERSIBLE`, contract `"INSIDE"` | âœ… |
+| `write .env` â†’ `OUTSIDE_ROLLBACK` | [`TestWriteTools.test_write_env_file_outside_rollback`](tests/test_classifier.py:60) | `OUTSIDE_ROLLBACK`, domain `CREDENTIAL_STATE` | âœ… |
+| background process â†’ `OUTSIDE_ROLLBACK` | [`TestFailClosed.test_background_process_outside`](tests/test_classifier.py:187) | `OUTSIDE_ROLLBACK`, domain `PROCESS_RUNTIME` | âœ… |
+
+All 5 required scenarios are **confirmed tested**.
+
+---
+
+### 6. Campaign Classification Accuracy ([`proof/results.json`](proof/results.json))
+
+| Metric | Value |
+|--------|-------|
+| **Total drills** | 21 (R01â€“R21) |
+| **Correct classifications** | 21 |
+| **Classification accuracy** | **100% (1.0)** |
+| OUTSIDE_ROLLBACK classified | 7 |
+| UNKNOWN_EFFECT classified | 5 |
+| COVERED_REVERSIBLE classified | 7 |
+| BOUNDARY_REQUIRES_PERMIT classified | 2 |
+| Status | `classifier_complete_verifier_pending` |
+
+> âš ï¸? **Caveat:** All `pre_state_sha256 / post_action_sha256 / post_rollback_sha256` values are `"PENDING_REAL_RUN"`. The 100% accuracy is based on classifier-only logic â€” the verifier loop (actual Bob experiment runs) has not been executed yet.
+
+---
+
+### 7. Missing Test Cases for Completeness
+
+The following gaps exist relative to the 22 rules in the registry:
+
+| Gap | Suggested Test | Priority |
+|-----|---------------|----------|
+| **`git add`** â€” `rule_execute_git_add` is in the registry but has no test | `test_git_add_boundary` â†’ `BOUNDARY_REQUIRES_PERMIT`, domain `VCS_LOCAL` | High |
+| **`git fetch --dry`** â€” covered by `rule_execute_git_read` but not exercised | `test_git_fetch_dry_covered` | Medium |
+| **`npm install`** â€” `rule_npm_install` has no test | `test_npm_install_boundary` â†’ `BOUNDARY_REQUIRES_PERMIT`, domain `WORKSPACE_EXCLUDED` | High |
+| **`pip install`** â€” `rule_pip_install` has no test | `test_pip_install_boundary` â†’ `BOUNDARY_REQUIRES_PERMIT`, domains `WORKSPACE_EXCLUDED`, `EXTERNAL_NETWORK` | High |
+| **`pytest`** â€” `rule_python_test` has no test | `test_pytest_covered` â†’ `COVERED_REVERSIBLE` | Medium |
+| **`curl -X PUT / PATCH / DELETE`** â€” only POST is tested in `TestNetworkOperations` | `test_curl_put_outside_rollback`, `test_curl_delete_outside_rollback` | Medium |
+| **`zsh -c` / `python -c` / `ruby -e`** â€” `rule_opaque_shell` covers these but only `bash -c`, `sh -c`, `powershell`, `node -e` are tested | `test_zsh_c_unknown`, `test_python_c_unknown`, `test_ruby_e_unknown` | Low |
+| **`write_file` to a `.gitignore`-matched path** â€” `rule_write_file_ignored` â†’ `BOUNDARY_REQUIRES_PERMIT` | `test_write_gitignored_file_boundary` | High |
+| **`search_and_replace` / `insert_content`** â€” both rules exist, neither has a test | `test_search_and_replace_tracked_covered`, `test_insert_content_tracked_covered` | Medium |
+| **`apply_diff` on an outside-workspace path** â€” only in-workspace is tested | `test_apply_diff_outside_workspace_outside_rollback` | Medium |
+| **`TestActionIdDeterminism` for non-read_file tools** â€” only `read_file` is used; edge cases like `execute_command` with different `background` flags never tested | `test_action_id_execute_command_determinism` | Low |
+| **`pwsh -Command`** â€” listed in `rule_opaque_shell` pattern alongside `powershell -Command` but not explicitly tested as a separate case | `test_pwsh_command_unknown` | Low |

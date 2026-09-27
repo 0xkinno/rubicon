@@ -1,0 +1,26 @@
+{
+  "receipt_version": "1",
+  "session_id": "rubicon-campaign-r16",
+  "action_id": "sha256:8f9b541b67a7ebd8622376757777d1e04639062179c5f730c32ad8357366c9ca",
+  "policy_version": "1.0.0",
+  "verifier_version": "1.0.0",
+  "pre_manifest_sha256": "da82411d0b98cfaccc8970e3a1aa2d7a69b5005ec18a32d990579286e1cc41ce",
+  "post_action_manifest_sha256": "731c069131d7cd1fcff986fe5ca92bdb7176fa37c521858e19e89cceefdcdac8",
+  "post_rollback_manifest_sha256": "5851f5d240f0b8c21f6d9c33c99e9d57686ca8a4038d89eaba90670163f9b0c7",
+  "domain_results": [
+    {
+      "domain": "WORKSPACE_TRACKED",
+      "result": "RESTORED",
+      "pre_hash": "a8aef96c88dc4bb0a89d5916de05674aac94effa95960174a05c8ef711a90032",
+      "post_action_hash": "a8aef96c88dc4bb0a89d5916de05674aac94effa95960174a05c8ef711a90032",
+      "post_rollback_hash": "a8aef96c88dc4bb0a89d5916de05674aac94effa95960174a05c8ef711a90032",
+      "notes": "State unchanged throughout (action had no effect on this domain)"
+    }
+  ],
+  "decision": "RESTORED",
+  "observability": {
+    "WORKSPACE_TRACKED": "RESTORED"
+  },
+  "limitations": [],
+  "signature": "975cc86494bd4098b8bfdfd58a5f2c8e93a2741e8c4056824c53b3769fa126ef86aa054dc0195c6d52630630c6b0b1713114434cb1f2f09ba3bae2be03f8bf08"
+}

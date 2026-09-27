@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: rubicon-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: RUBICON_ENV
+        value: production
+      - key: RUBICON_STORAGE_DIR
+        value: /tmp/rubicon_data

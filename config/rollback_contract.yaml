@@ -1,0 +1,119 @@
+# rollback_contract.yaml
+# Machine-readable Bob Rollback Coverage Contract
+# Version: 1.0.0
+# Status key: VERIFIED | DOCUMENTED_ONLY | UNKNOWN
+
+version: "1.0.0"
+
+# ─── State domains and their rollback coverage ──────────────────
+domains:
+  WORKSPACE_TRACKED:
+    description: "Files tracked by Git inside the workspace root"
+    documented_behavior: "Bob snapshots and restores these during task rollback"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: filesystem
+    notes: "R01, R02 experiments will confirm"
+
+  WORKSPACE_IGNORED:
+    description: "Files matching .gitignore patterns inside workspace"
+    documented_behavior: "Excluded from Bob rollback by default"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: filesystem
+    notes: "R03 experiment will confirm"
+
+  WORKSPACE_EXCLUDED:
+    description: "Built-in excluded categories: node_modules, build, dist, .env, logs, databases, caches"
+    documented_behavior: "Not included in Bob rollback snapshots"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: filesystem
+    notes: "R04, R05 experiments will confirm"
+
+  VCS_LOCAL:
+    description: "Local Git commit history, refs, staging area"
+    documented_behavior: "Bob restores workspace content; local VCS state behavior not explicitly documented"
+    confidence: UNKNOWN
+    verified: false
+    verifier_adapter: git
+    notes: "R06 experiment will confirm"
+
+  VCS_REMOTE:
+    description: "Remote Git repository state (pushed refs, commits)"
+    documented_behavior: "Outside Bob rollback scope — remote state is not reverted"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: git
+    notes: "R07 experiment critical — this is the headline demonstration"
+
+  PACKAGE_REGISTRY:
+    description: "npm/PyPI/etc. published packages"
+    documented_behavior: "Outside Bob rollback scope"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: registry
+    notes: "R12 — use local Verdaccio fixture only"
+
+  EXTERNAL_NETWORK:
+    description: "External HTTP endpoints mutated (POST, PUT, DELETE)"
+    documented_behavior: "Outside Bob rollback scope"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: http_fixture
+    notes: "R11 experiment"
+
+  PROCESS_RUNTIME:
+    description: "Detached/background processes spawned by agent"
+    documented_behavior: "Outside Bob rollback scope — processes continue running"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: process
+    notes: "R10 experiment"
+
+  OUTSIDE_WORKSPACE:
+    description: "Files written outside the workspace root (e.g. /tmp, ~/)"
+    documented_behavior: "Outside Bob rollback scope"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: filesystem
+    notes: "R08 experiment"
+
+  DATABASE_STATE:
+    description: "Local database mutations (SQLite, etc.)"
+    documented_behavior: "Database files excluded from Bob rollback (built-in exclusion)"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: sqlite
+    notes: "R09 experiment"
+
+  CREDENTIAL_STATE:
+    description: ".env files and credential stores"
+    documented_behavior: "Excluded from Bob rollback"
+    confidence: DOCUMENTED_ONLY
+    verified: false
+    verifier_adapter: filesystem
+    notes: "R05 experiment"
+
+  UNKNOWN:
+    description: "Effects whose domain cannot be statically classified"
+    documented_behavior: "Must fail closed per Rubicon invariant"
+    confidence: UNKNOWN
+    verified: false
+    verifier_adapter: null
+    notes: "Fail closed — block all UNKNOWN"
+
+# ─── Policy defaults per domain ────────────────────────────────
+policy_defaults:
+  WORKSPACE_TRACKED: COVERED_REVERSIBLE
+  WORKSPACE_IGNORED: BOUNDARY_REQUIRES_PERMIT
+  WORKSPACE_EXCLUDED: OUTSIDE_ROLLBACK
+  VCS_LOCAL: BOUNDARY_REQUIRES_PERMIT
+  VCS_REMOTE: OUTSIDE_ROLLBACK
+  PACKAGE_REGISTRY: OUTSIDE_ROLLBACK
+  EXTERNAL_NETWORK: OUTSIDE_ROLLBACK
+  PROCESS_RUNTIME: OUTSIDE_ROLLBACK
+  OUTSIDE_WORKSPACE: OUTSIDE_ROLLBACK
+  DATABASE_STATE: OUTSIDE_ROLLBACK
+  CREDENTIAL_STATE: OUTSIDE_ROLLBACK
+  UNKNOWN: UNKNOWN_EFFECT

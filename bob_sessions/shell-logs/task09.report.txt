@@ -1,0 +1,118 @@
+Now I have everything needed. Here's the full findings report:
+
+---
+
+## TASK 09: watsonx Granite Explainer â€” Findings Report
+
+### 1. The 4 watsonx Environment Variable Names (from [`.env.example`](.env.example))
+
+| Variable | Value |
+|---|---|
+| `WATSONX_API_KEY` | *(empty â€” credentials)* |
+| `WATSONX_PROJECT_ID` | *(empty â€” credentials)* |
+| `WATSONX_URL` | `https://us-south.ml.cloud.ibm.com` |
+| `WATSONX_MODEL_ID` | `ibm/granite-13b-instruct-v2` |
+
+---
+
+### 2. watsonx is OPTIONAL â€” Confirmed
+
+[`.env.example` line 7](.env.example:7) states explicitly:
+> `# â”€â”€â”€ IBM watsonx (optional â€” product works without these) â”€â”€â”€`
+
+[`RUBICON_INSTRUCTION.md` Section 23](RUBICON_INSTRUCTION.md:1238) states:
+> *"If these variables are absent, the product still works."*
+
+---
+
+### 3. The 3 Things Granite IS Allowed to Do (Section 22)
+
+From [`RUBICON_INSTRUCTION.md` lines 1197â€“1201](RUBICON_INSTRUCTION.md:1197):
+
+1. **Translate** a deterministic receipt into human-readable incident language
+2. **Summarize** a campaign result
+3. **Generate** a concise explanation for non-security reviewers
+
+---
+
+### 4. The 4 Things Granite Must NOT Decide (Section 22)
+
+From [`RUBICON_INSTRUCTION.md` lines 1203â€“1208](RUBICON_INSTRUCTION.md:1203):
+
+1. Whether something is **reversible**
+2. Whether to **permit** an action
+3. Whether a **verifier passed**
+4. Whether **evidence is sufficient**
+
+---
+
+### 5. Where the watsonx Explainer Would Be Called in [`app/api/main.py`](app/api/main.py)
+
+There are **two natural injection points**, neither of which exists yet (no watsonx code is present â€” correctly absent):
+
+- **`GET /api/receipts/{receipt_id}` â€” [`main.py` line 154â€“159](app/api/main.py:154)**: After reading a single receipt's JSON, this is where a Granite call would augment the response with an `explanation` field â€” translating the `domain_results`, `decision`, and `limitations` into human-readable prose.
+- **`GET /api/campaign` â€” [`main.py` line 210â€“216](app/api/main.py:210)**: After loading `proof/results.json`, Granite would be called to produce a campaign-level summary narrative.
+
+The explainer layer would be a **conditional wrapper**: `if os.environ.get("WATSONX_API_KEY"): ... else: return deterministic_fallback(receipt)`.
+
+---
+
+### 6. API-Deletion Principle â€” Confirmed
+
+From [`RUBICON_INSTRUCTION.md` lines 1210â€“1221](RUBICON_INSTRUCTION.md:1210):
+
+> *"Delete the watsonx credentials and the core product must still: classify, block/permit, verify, sign receipts, run the benchmark, display deterministic evidence. Only the AI explanation layer should change."*
+
+[`app/api/main.py`](app/api/main.py) currently imports only [`core.classifier`](core/classifier/classifier.py) and [`core.models`](core/models.py). Zero watsonx imports exist â€” the classifier (`/api/classify`), permit engine (`/api/permits/pending`), and verifier-produced receipts (`/api/receipts`) are **entirely independent** of `WATSONX_API_KEY`. Removing it changes nothing about their behavior.
+
+---
+
+### 7. Deterministic Fallback Summary Format
+
+When `WATSONX_API_KEY` is absent, the fallback must be generated from structured receipt fields. Using the [`ReversibilityReceipt` dataclass at `core/models.py` line 158](core/models.py:158), the deterministic summary must use:
+
+| Field | Used for |
+|---|---|
+| `action_id` | Identifies which action was taken |
+| `session_id` | Scope of the session |
+| `decision` | The `ReceiptVerdict` â€” `RESTORED` / `PARTIAL` / `BREACH` / `UNKNOWN` |
+| `domain_results` | Per-adapter pass/fail (filesystem, git, process, etc.) |
+| `limitations` | What could not be verified |
+| `pre_manifest_sha256` / `post_action_manifest_sha256` / `post_rollback_manifest_sha256` | SHA evidence that state was/wasn't restored |
+| `policy_version` / `verifier_version` | Audit trail of which rules applied |
+| `signature` | Ed25519 proof that the receipt was not tampered |
+
+Example deterministic fallback template:
+```
+Action {action_id} in session {session_id}:
+Verdict â€” {decision}.
+Domains checked: {len(domain_results)} ({n} passed, {m} failed).
+Limitations: {limitations or "none"}.
+Receipt signed: {bool(signature)}.
+Policy: {policy_version} / Verifier: {verifier_version}.
+```
+
+Section 23 also mandates: *"a deterministic fallback summary must be generated from structured receipt data rather than hallucinated prose."*
+
+---
+
+### 8. What `NEXT_PUBLIC_RUBICON_API_URL` Is Used For
+
+Two distinct uses:
+
+1. **CORS allowlist in the FastAPI backend** â€” [`app/api/main.py` line 49](app/api/main.py:49):
+   ```python
+   os.environ.get("NEXT_PUBLIC_RUBICON_API_URL", "http://localhost:3000"),
+   ```
+   The backend reads this env var to add the frontend's origin to the `CORSMiddleware` allow list. (Note: the current usage is semantically inverted â€” it's using the *API URL* as the *allowed origin*, which likely should be the frontend URL; this is a pre-existing code observation, not a modification.)
+
+2. **Frontend â†’ backend base URL** â€” [`.env.example` line 14](.env.example:14) and comment on line 26:
+   ```
+   NEXT_PUBLIC_RUBICON_API_URL=http://localhost:8000
+   # NEXT_PUBLIC_RUBICON_API_URL is also used here; set in Vercel env panel.
+   ```
+   The Next.js frontend uses this `NEXT_PUBLIC_` prefixed variable to construct all API calls to the FastAPI backend (e.g., `fetch(process.env.NEXT_PUBLIC_RUBICON_API_URL + "/api/receipts")`). On Vercel deployment, this is set in the Vercel env panel to the production API URL.
+
+---
+
+**Summary:** No files were modified. All 8 findings are grounded directly in the source files read.

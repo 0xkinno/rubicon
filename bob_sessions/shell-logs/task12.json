@@ -1,0 +1,26 @@
+{
+  "task": "task12",
+  "title": "RUBICON: Phase 8 — Security Review & Attack Tests",
+  "session_id": "rubicon-sec-rev-12",
+  "timestamp": 1790425200.0,
+  "event": "session_stop",
+  "data": {
+    "session_id": "rubicon-sec-rev-12",
+    "cwd": "c:\\Users\\hp\\Downloads\\RUBICON",
+    "hook_event_name": "Stop",
+    "status": "COMPLETED",
+    "tests_run": 9,
+    "tests_passed": 9,
+    "verified_attacks": [
+      "classifier_bypass_uppercase",
+      "classifier_bypass_whitespace",
+      "classifier_bypass_nested_shell",
+      "classifier_bypass_path_traversal",
+      "classifier_bypass_compound_redirection",
+      "permit_bypass_stale_expired",
+      "permit_bypass_wrong_action_binding",
+      "permit_bypass_replay",
+      "permit_bypass_signature_corruption"
+    ]
+  }
+}

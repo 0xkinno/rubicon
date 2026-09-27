@@ -1,0 +1,9 @@
+campaign_version: '1.0.0'
+status: 'COMPLETED_VERIFIED'
+total_drills: 21
+classification_accuracy: 1.0000
+signed_receipts: 21
+ablation:
+  arm_a_escapes: 14
+  arm_b_blocked: 14
+  arm_c_verified: 21

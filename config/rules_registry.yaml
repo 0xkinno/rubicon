@@ -1,0 +1,245 @@
+# rules_registry.yaml
+# Rubicon classifier rule registry
+# Maps tool name + action pattern → state domains + classification result
+# Version: 1.0.0
+#
+# NOTE: All entries marked hypothesis: true are UNVERIFIED pending Phase 0 experiments.
+# Do not claim them as facts until experiments confirm.
+
+version: "1.0.0"
+
+# ─── File operation tools ──────────────────────────────────────
+rules:
+
+  - id: rule_read_file
+    tool: read_file
+    description: "Read a file inside workspace"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: false
+    reason: "Read operations have no side effects on any state domain"
+
+  - id: rule_write_file_tracked
+    tool: write_file
+    pattern:
+      path_must_be_inside_workspace: true
+      path_must_not_match_gitignore: true
+      path_must_not_match_excluded_categories: true
+    description: "Write to a tracked workspace file"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: true
+    reason: "Requires R01 confirmation that Bob snapshots tracked file writes"
+
+  - id: rule_write_file_ignored
+    tool: write_file
+    pattern:
+      path_matches_gitignore: true
+    description: "Write to a .gitignore-excluded file"
+    domains: [WORKSPACE_IGNORED]
+    classification: BOUNDARY_REQUIRES_PERMIT
+    hypothesis: true
+    reason: "Requires R03 confirmation"
+
+  - id: rule_write_file_env
+    tool: write_file
+    pattern:
+      path_matches_pattern: "**/.env*"
+    description: "Write to .env file"
+    domains: [CREDENTIAL_STATE, WORKSPACE_EXCLUDED]
+    classification: OUTSIDE_ROLLBACK
+    hypothesis: true
+    reason: "Requires R05 confirmation"
+
+  - id: rule_write_file_outside_workspace
+    tool: write_file
+    pattern:
+      path_outside_workspace: true
+    description: "Write to a path outside workspace root"
+    domains: [OUTSIDE_WORKSPACE]
+    classification: OUTSIDE_ROLLBACK
+    hypothesis: true
+    reason: "Requires R08 confirmation"
+
+  - id: rule_list_files
+    tool: list_files
+    description: "List directory contents"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: false
+    reason: "Read-only operation"
+
+  - id: rule_search_and_replace
+    tool: search_and_replace
+    pattern:
+      path_must_be_inside_workspace: true
+      path_must_not_match_gitignore: true
+    description: "Search and replace in tracked workspace file"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: true
+    reason: "Requires R01 confirmation"
+
+  - id: rule_insert_content
+    tool: insert_content
+    pattern:
+      path_must_be_inside_workspace: true
+    description: "Insert content into tracked workspace file"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: true
+    reason: "Requires R01 confirmation"
+
+# ─── Git operations ────────────────────────────────────────────
+
+  - id: rule_execute_git_add
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^git (add|stage)"
+    description: "git add / stage"
+    domains: [WORKSPACE_TRACKED, VCS_LOCAL]
+    classification: BOUNDARY_REQUIRES_PERMIT
+    hypothesis: true
+    reason: "Staging area change; R06 experiment needed"
+
+  - id: rule_execute_git_commit
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^git commit"
+    description: "git commit"
+    domains: [VCS_LOCAL]
+    classification: BOUNDARY_REQUIRES_PERMIT
+    hypothesis: true
+    reason: "R06 experiment will confirm VCS_LOCAL behavior after rollback"
+
+  - id: rule_execute_git_push
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^git push"
+    description: "git push to any remote"
+    domains: [VCS_REMOTE]
+    classification: OUTSIDE_ROLLBACK
+    hypothesis: true
+    reason: "R07 experiment — headline OUTSIDE_ROLLBACK demonstration"
+
+  - id: rule_execute_git_read
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^git (log|status|diff|show|branch|remote -v|ls-remote|fetch --dry)"
+    description: "git read-only operations"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: false
+    reason: "Read-only git operations have no side effects"
+
+# ─── Shell commands — npm/node ─────────────────────────────────
+
+  - id: rule_npm_test
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^npm (test|run test)"
+    description: "npm test"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: true
+    reason: "Assumes no side effects; per-project verification recommended"
+
+  - id: rule_npm_install
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^npm install"
+    description: "npm install (local)"
+    domains: [WORKSPACE_EXCLUDED]
+    classification: BOUNDARY_REQUIRES_PERMIT
+    hypothesis: true
+    reason: "node_modules excluded from rollback; network side effects"
+
+  - id: rule_npm_publish
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^npm publish"
+    description: "npm publish"
+    domains: [PACKAGE_REGISTRY, EXTERNAL_NETWORK]
+    classification: OUTSIDE_ROLLBACK
+    hypothesis: false
+    reason: "Package registry mutation is outside any rollback scope"
+
+# ─── Shell commands — Python ───────────────────────────────────
+
+  - id: rule_python_test
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^(python -m pytest|pytest)"
+    description: "pytest"
+    domains: [WORKSPACE_TRACKED]
+    classification: COVERED_REVERSIBLE
+    hypothesis: true
+    reason: "Read-only test execution; assumes no fixture writes"
+
+  - id: rule_pip_install
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^pip install"
+    description: "pip install"
+    domains: [WORKSPACE_EXCLUDED, EXTERNAL_NETWORK]
+    classification: BOUNDARY_REQUIRES_PERMIT
+    hypothesis: true
+    reason: "venv excluded; network side effect"
+
+# ─── Network operations ────────────────────────────────────────
+
+  - id: rule_curl_post
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^curl .*(\\-X\\s*(POST|PUT|PATCH|DELETE)|\\-d\\s)"
+    description: "curl with mutation method"
+    domains: [EXTERNAL_NETWORK]
+    classification: OUTSIDE_ROLLBACK
+    hypothesis: false
+    reason: "External HTTP mutation is irreversible from Bob rollback perspective"
+
+  - id: rule_curl_get
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^curl\\s"
+      not_matches: "(\\-X\\s*(POST|PUT|PATCH|DELETE)|\\-d\\s)"
+    description: "curl GET (read-only)"
+    domains: [EXTERNAL_NETWORK]
+    classification: COVERED_REVERSIBLE
+    hypothesis: false
+    reason: "Read-only HTTP has no persistent side effects (within reason)"
+
+# ─── Process operations ────────────────────────────────────────
+
+  - id: rule_background_process
+    tool: execute_command
+    pattern:
+      detached: true
+      command_normalized_matches: ".*(&\\s*$|--detach|nohup|Start-Process)"
+    description: "Detached/background process spawn"
+    domains: [PROCESS_RUNTIME]
+    classification: OUTSIDE_ROLLBACK
+    hypothesis: false
+    reason: "Processes persist after workspace rollback"
+
+# ─── Opaque / unsafe shell ─────────────────────────────────────
+
+  - id: rule_opaque_shell
+    tool: execute_command
+    pattern:
+      command_normalized_matches: "^(sh -c|bash -c|zsh -c|powershell -Command|pwsh -Command|node -e|python -c|ruby -e)"
+    description: "Inline arbitrary shell or interpreter execution"
+    domains: [UNKNOWN]
+    classification: UNKNOWN_EFFECT
+    hypothesis: false
+    reason: "Transitive effects cannot be statically resolved; fail closed"
+
+  - id: rule_path_traversal
+    tool: execute_command
+    pattern:
+      command_contains_path_traversal: true
+    description: "Commands containing path traversal patterns"
+    domains: [OUTSIDE_WORKSPACE, UNKNOWN]
+    classification: UNKNOWN_EFFECT
+    hypothesis: false
+    reason: "Potential workspace escape; fail closed"

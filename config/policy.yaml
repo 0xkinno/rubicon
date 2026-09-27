@@ -1,0 +1,132 @@
+# policy.yaml
+# Rubicon Blast-Radius Fence Policy
+# Defines roles, tools, and permitted state domains
+# Version: 1.0.0
+
+version: "1.0.0"
+
+# ─── Role definitions ──────────────────────────────────────────
+# The agent does NOT define its own role.
+# Policy is resolved server-side / hook-side from repository declaration.
+
+roles:
+
+  engineer:
+    description: "Standard developer — read and write tracked workspace files, run tests"
+    allow:
+      - tool: read_file
+        paths: ["**"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: write_file
+        paths: ["src/**", "tests/**", "*.md", "*.json", "*.yaml", "*.toml"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: list_files
+        paths: ["**"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: search_and_replace
+        paths: ["src/**", "tests/**"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: insert_content
+        paths: ["src/**", "tests/**"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: execute_command
+        command_class: [test_readonly, git_read, build_local]
+        domains: [WORKSPACE_TRACKED]
+
+  test_agent:
+    description: "Automated test runner — read-only execution"
+    allow:
+      - tool: read_file
+        paths: ["**"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: execute_command
+        command_class: [test_readonly]
+        domains: [WORKSPACE_TRACKED]
+
+  release_agent:
+    description: "Release / deployment agent — dry run only by default; live push requires explicit permit"
+    allow:
+      - tool: read_file
+        paths: ["**"]
+        domains: [WORKSPACE_TRACKED]
+
+      - tool: execute_command
+        command_class: [release_dry_run, git_read]
+        domains: [WORKSPACE_TRACKED, VCS_LOCAL]
+
+    boundary:
+      - tool: execute_command
+        command_class: [git_commit, git_push, npm_publish]
+        domains: [VCS_LOCAL, VCS_REMOTE, PACKAGE_REGISTRY]
+        requires_permit: true
+
+  admin:
+    description: "Full access — all operations require explicit permit for boundary/outside domains"
+    allow:
+      - tool: "*"
+        paths: ["**"]
+        domains: [WORKSPACE_TRACKED]
+
+    boundary:
+      - tool: "*"
+        domains: [VCS_LOCAL, VCS_REMOTE, PACKAGE_REGISTRY, EXTERNAL_NETWORK,
+                  PROCESS_RUNTIME, OUTSIDE_WORKSPACE, DATABASE_STATE, CREDENTIAL_STATE]
+        requires_permit: true
+
+    deny:
+      - tool: "*"
+        domains: [UNKNOWN]
+
+# ─── Command class definitions ─────────────────────────────────
+command_classes:
+
+  test_readonly:
+    patterns:
+      - "^(npm test|npm run test|pytest|python -m pytest|make test)"
+    side_effects: false
+
+  git_read:
+    patterns:
+      - "^git (log|status|diff|show|branch|remote|ls-remote|fetch --dry-run)"
+    side_effects: false
+
+  build_local:
+    patterns:
+      - "^(npm run build|make build|python setup.py build)"
+    side_effects: [WORKSPACE_EXCLUDED]
+
+  git_commit:
+    patterns:
+      - "^git commit"
+    side_effects: [VCS_LOCAL]
+
+  git_push:
+    patterns:
+      - "^git push"
+    side_effects: [VCS_REMOTE]
+
+  npm_publish:
+    patterns:
+      - "^npm publish"
+    side_effects: [PACKAGE_REGISTRY, EXTERNAL_NETWORK]
+
+  release_dry_run:
+    patterns:
+      - ".*--dry-run.*"
+      - ".*--no-push.*"
+    side_effects: []
+
+# ─── Fail-closed defaults ──────────────────────────────────────
+fail_closed:
+  unknown_role: true
+  unknown_tool: true
+  unknown_effect: true
+  malformed_input: true
+  stale_permit: true
+  invalid_signature: true

@@ -1,0 +1,57 @@
+{
+  "manifest_id": "c8d329ab-273a-4130-8c7e-b6bfbbe730c3",
+  "captured_at": 1790482316.737024,
+  "workspace_root": "C:\\Users\\hp\\AppData\\Local\\Temp\\rubicon_campaign_30lve6bk\\R07",
+  "manifest_type": "post_action",
+  "session_id": "rubicon-campaign-r07",
+  "policy_version": "1.0.0",
+  "verifier_version": "1.0.0",
+  "tracked_files": [
+    {
+      "path": ".gitignore",
+      "sha256": "da3f55b619ecb8fb8c38c4c2925e17527878216a197a71334432b433f2d58274",
+      "size": 25,
+      "exists": true
+    },
+    {
+      "path": "src/app.py",
+      "sha256": "986fde002856f5a65a43618c164490592faa7c0903daff59fdc71588e3c1d3b8",
+      "size": 12,
+      "exists": true
+    },
+    {
+      "path": "src/tracked.txt",
+      "sha256": "c8a9047e52dc213a3af1cfee63bc6a5c7b6f52bf39a3f1ae64ee50ea27d8fb56",
+      "size": 20,
+      "exists": true
+    }
+  ],
+  "git_state": {
+    "head": "0ada721a7a0e4d1e959021ce56264dec9e7f9361",
+    "branch": "main",
+    "working_tree_clean": false,
+    "staged_files": [],
+    "modified_files": [],
+    "untracked_files": [
+      "fixtures/"
+    ],
+    "remote_refs": {}
+  },
+  "env_state_redacted": {
+    ".env": {
+      "exists": false
+    },
+    ".env.local": {
+      "exists": false
+    },
+    ".env.example": {
+      "exists": false
+    }
+  },
+  "process_snapshot": [
+    {
+      "error": "psutil not installed \u2014 process snapshot unavailable"
+    }
+  ],
+  "notes": ""
+}

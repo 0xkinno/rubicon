@@ -1,0 +1,37 @@
+{
+  "receipt_version": "1",
+  "session_id": "rubicon-campaign-r14",
+  "action_id": "sha256:9ca3c83f34d12333466b8ef20fba96c1f0959b901334cb895373463874045dae",
+  "policy_version": "1.0.0",
+  "verifier_version": "1.0.0",
+  "pre_manifest_sha256": "8b784942e3ffe0ffbef77051c8490055db234304c2252ec9bfdfcb1b371c27c0",
+  "post_action_manifest_sha256": "efaad0e43abecf7184cd58ec6b27afff7648efae700d908d3a0a0fbac5a23033",
+  "post_rollback_manifest_sha256": "b43341adc518950973b82232f66486b7e6851c5f2cb4de5ec8771e0a57e6d1ca",
+  "domain_results": [
+    {
+      "domain": "OUTSIDE_WORKSPACE",
+      "result": "RESTORED",
+      "pre_hash": "a8aef96c88dc4bb0a89d5916de05674aac94effa95960174a05c8ef711a90032",
+      "post_action_hash": "a8aef96c88dc4bb0a89d5916de05674aac94effa95960174a05c8ef711a90032",
+      "post_rollback_hash": "a8aef96c88dc4bb0a89d5916de05674aac94effa95960174a05c8ef711a90032",
+      "notes": "State unchanged throughout (action had no effect on this domain)"
+    },
+    {
+      "domain": "UNKNOWN",
+      "result": "NOT_OBSERVABLE",
+      "pre_hash": null,
+      "post_action_hash": null,
+      "post_rollback_hash": null,
+      "notes": "No verifier adapter registered for domain UNKNOWN"
+    }
+  ],
+  "decision": "UNKNOWN",
+  "observability": {
+    "OUTSIDE_WORKSPACE": "RESTORED",
+    "UNKNOWN": "NOT_OBSERVABLE"
+  },
+  "limitations": [
+    "Domain UNKNOWN is not independently observable by Rubicon verifier"
+  ],
+  "signature": "195a5b465a00c17d6fc6096a3158f5f8ae4bc1c868a5014e17a1c260f79f94e8c80b3e8b4f928297fb5621404159c69d1109557caa9581378cdf5595e919cc01"
+}

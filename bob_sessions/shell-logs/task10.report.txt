@@ -1,0 +1,174 @@
+I have everything needed. Here is the full audit report:
+
+---
+
+## TASK 10 Audit Report â€” RUBICON Phase 6: Web Dashboard & UI
+
+### 1. Landing Page â€” 9 Sections in Order (Section 24)
+
+Section 24 specifies **10 items** in the landing page order (Hero, Problem, Threshold visual, Stats, How it works, **Interactive proof story**, IBM Bob integration, Judge CTA, Footer, Dashboard entry). The actual [`page.tsx`](app/web/src/app/page.tsx:159) implements:
+
+| # | Required (Section 24) | Found in page.tsx | Status |
+|---|---|---|---|
+| 1 | Hero | `{/* Hero */}` at line 159 | âœ… |
+| 2 | Problem statement | `{/* Problem statement */}` at line 215 | âœ… |
+| 3 | Threshold visual | `{/* Threshold visual */}` at line 250 | âœ… |
+| 4 | Campaign stats (real only) | `{/* Campaign stats */}` at line 293 | âš ï¸? (see #8) |
+| 5 | How it works | `{/* How it works */}` at line 313 | âœ… |
+| 6 | **Interactive proof story** | **MISSING** â€” no interactive proof story section | â?Œ |
+| 7 | IBM Bob integration | `{/* IBM Bob integration */}` at line 347 | âœ… |
+| 8 | Judge CTA | `{/* Judge CTA */}` at line 380 | âœ… |
+| 9 | Footer | `{/* Footer */}` at line 406 | âœ… |
+| 10 | Dashboard entry | Both footer and hero CTAs link to `/dashboard` | âœ… |
+
+**Gap:** Item 6 (Short interactive proof story) is absent. The page goes directly from "How it works" to "IBM Bob integration", skipping that section entirely.
+
+---
+
+### 2. Hero Message Match
+
+Required (Section 24):
+> **"Bob can undo your files. Can it undo what those files already caused?"**
+
+Actual [`<h1>` at line 180â€“185](app/web/src/app/page.tsx:180):
+```
+Bob can undo your files.
+Can it undo what those files already caused?
+```
+
+âœ… **Exact match** â€” split across two lines with a `<br />` between them, but the full sentence is verbatim correct.
+
+---
+
+### 3. Dashboard â€” Dark Canvas (`dashboard-dark` class)
+
+[`DashboardPage` at line 154](app/web/src/app/dashboard/page.tsx:154):
+```tsx
+<div className="min-h-screen dashboard-dark font-sans">
+```
+
+[`globals.css` at line 116â€“119](app/web/src/app/globals.css:116):
+```css
+.dashboard-dark {
+  background: #0f0f0f;
+  color: #f9fafb;
+}
+```
+
+âœ… **Confirmed.** Dashboard uses `dashboard-dark` class with near-black `#0f0f0f` background. The proof page ([line 192](app/web/src/app/proof/page.tsx:192)) also uses `dashboard-dark`, consistent with the dark technical evidence canvas requirement.
+
+---
+
+### 4. Proof Page â€” All 10 Judge Questions (Section 37)
+
+Section 37 requires answers to these 10 questions. [`proof/page.tsx` lines 221â€“245](app/web/src/app/proof/page.tsx:221):
+
+| # | Question Required | Answer Provided | Status |
+|---|---|---|---|
+| 1 | What Bob action happened? | `action_id` and `tool` fields from active receipt | âœ… |
+| 2 | What state domains did it affect? | Effect vector `domains` array | âœ… |
+| 3 | What did Rubicon classify? | Classification result from rule registry | âœ… |
+| 4 | Was the action blocked, permitted, or unknown? | `decision` field (BLOCK / ALLOW / PENDING_HUMAN) | âœ… |
+| 5 | What happened before rollback? | `pre_manifest_sha256` in receipt | âœ… |
+| 6 | What did Bob rollback? | Workspace files per Bob rollback contract | âœ… |
+| 7 | What remained afterward? | `domain_results` with `REMAINS_CHANGED` entries | âœ… |
+| 8 | What did the independent verifier observe? | Each adapter independently hashed its domain | âœ… |
+| 9 | What is the receipt hash/signature? | Ed25519 signature over receipt bytes | âœ… |
+| 10 | What can Rubicon not observe? | `limitations` array in receipt | âœ… |
+
+âœ… **All 10 questions answered.** Each maps to a concrete data field in the receipt.
+
+---
+
+### 5. API Endpoints in `api.ts`
+
+[`api.ts` lines 94â€“106](app/web/src/lib/api.ts:94) â€” **8 endpoints defined:**
+
+| # | Method | Path | Description |
+|---|---|---|---|
+| 1 | `GET` | `/api/health` | Health check |
+| 2 | `GET` | `/api/status` | Full status (decisions total, blocked, allowed, receipts, key) |
+| 3 | `GET` | `/api/decisions?limit=N` | List recent decisions |
+| 4 | `GET` | `/api/receipts` | List receipt summaries |
+| 5 | `GET` | `/api/receipts/:id` | Single receipt detail |
+| 6 | `GET` | `/api/permits/pending` | Pending human permits |
+| 7 | `GET` | `/api/campaign` | Campaign results / drills / metrics |
+| 8 | `POST` | `/api/classify` | Classify a tool call (preview/live) |
+
+âœ… **All 8 endpoints present and typed.**
+
+---
+
+### 6. IBM Plex Sans and IBM Plex Mono Fonts
+
+[`globals.css` line 7](app/web/src/app/globals.css:7):
+```css
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+```
+
+[`globals.css` line 34](app/web/src/app/globals.css:34):
+```css
+font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', system-ui, sans-serif;
+```
+
+âœ… **IBM Plex Sans** â€” body default. âœ… **IBM Plex Mono** â€” used for code/evidence/receipts. âœ… **No generic Arial** in the font stack.
+
+âš ï¸? **One caveat:** The [`<h1>` in `page.tsx` at line 177](app/web/src/app/page.tsx:177) overrides the display font with:
+```tsx
+fontFamily: '"Helvetica Neue", Helvetica, -apple-system, sans-serif'
+```
+This is the display/editorial override (Section 24 permits a separate display font), but it is Helvetica Neue rather than a licensed premium geometric font. This is a minor non-compliance with the "premium editorial/geometric font with a real weight range" spec, though it's not Arial.
+
+---
+
+### 7. Framer Motion Animations
+
+- [`page.tsx` line 4](app/web/src/app/page.tsx:4): `import { motion } from 'framer-motion'`
+- [`dashboard/page.tsx` line 4](app/web/src/app/dashboard/page.tsx:4): `import { motion } from 'framer-motion'`
+- [`proof/page.tsx` line 4](app/web/src/app/proof/page.tsx:4): `import { motion } from 'framer-motion'`
+
+Used for: hero entrance (`animate`), stat cards and steps (`whileInView`), metrics row and receipt panel in dashboard/proof, staggered judge question cards.
+
+âœ… **Framer Motion confirmed in all three pages.**
+
+---
+
+### 8. Stats Section â€” No Fake/Hardcoded Evidence Numbers
+
+[`page.tsx` lines 299â€“308](app/web/src/app/page.tsx:299):
+
+```tsx
+<StatCard value="21" label="Drills run (R01â€“R21)" />
+<StatCard value="3" label="Ablation arms (A / B / C)" />
+<StatCard value="100%" label="Outside-rollback correctly classified" accent />
+<StatCard value="1" label="Honest limitation disclosed" />
+```
+
+And immediately below ([line 305](app/web/src/app/page.tsx:305)):
+```tsx
+<p className="mt-8 text-sm text-ink-muted">
+  * These numbers are placeholders pending real campaign execution.
+  The proof campaign runs Phase 0 experiments and replaces these with actual measured values.
+</p>
+```
+
+â?Œ **These ARE hardcoded placeholder numbers** â€” `"21"`, `"3"`, `"100%"`, `"1"` are static strings, not fetched from the API. The disclaimer acknowledges they are placeholders. Section 24 requires **"Real campaign stats only"** â€” this condition is not yet met. The correct implementation would fetch from `api.campaign()` and display `campaign.metrics.*` values (or show "â€”" / "pending" until the campaign runs).
+
+---
+
+### Summary of Findings
+
+| Check | Result |
+|---|---|
+| 9 landing sections in order | âš ï¸? **8/9 present** â€” Section 6 (interactive proof story) is missing |
+| Hero message exact match | âœ… Verbatim |
+| Dashboard uses `dashboard-dark` | âœ… Confirmed |
+| Proof page answers all 10 judge questions | âœ… All 10 present |
+| 8 API endpoints in `api.ts` | âœ… All 8 listed |
+| IBM Plex Sans + IBM Plex Mono (no Arial) | âœ… Both fonts, no Arial â€” display headline uses Helvetica Neue (minor) |
+| Framer Motion for animations | âœ… Used in all 3 pages |
+| No fake stats (pending campaign) | â?Œ **4 hardcoded placeholder numbers** with disclaimer â€” must be replaced with live API data |
+
+**Two issues require follow-up before submission:**
+1. **Missing Section 6** â€” add the short interactive proof story section between "How it works" and "IBM Bob integration".
+2. **Hardcoded stats** â€” replace the static `"21"`, `"3"`, `"100%"`, `"1"` values with live data from `api.campaign()` (show `â€”` or `pending` state if campaign hasn't run yet).

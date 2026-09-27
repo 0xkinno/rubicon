@@ -1,0 +1,170 @@
+Here is the complete analysis of all requested items.
+
+---
+
+## TASK 08 â€” Causal Benchmark Arms A/B/C: Findings Report
+
+---
+
+### 1. Why Rubicon Needs 3 Ablation Arms (Not Just Pass/Fail)
+
+Three arms are required to **isolate causality** at each layer of Rubicon's mechanism. Arm A (raw Bob) establishes the unguarded baseline â€” what happens with no enforcement â€” so any improvement cannot be explained as a Bob-native behavior. Arm B (classifier + fence only) isolates the value of the pre-tool-use block/permit gate alone, without the post-rollback verifier, ruling out the objection that stricter policy alone drives results. Arm C (classifier + fence + verifier + receipts) is the only arm that can prove whether rollback actually restored the state it was predicted to restore, making the post-rollback verifier the **load-bearing differentiator** that separates a benchmark from a dashboard.
+
+> *Section 17 explicitly states: "The post-rollback verifier is the load-bearing differentiator."*
+
+---
+
+### 2. `proof/results.json` â€” Metrics Object Fields and Current Values
+
+From [`proof/results.json`](proof/results.json:453) lines 453â€“462:
+
+| Field | Value |
+|---|---|
+| `total_drills` | `21` |
+| `correct_classifications` | `21` |
+| `outside_rollback_classified` | `7` |
+| `unknown_classified` | `5` |
+| `covered_classified` | `7` |
+| `boundary_classified` | `2` |
+| `classification_accuracy` | `1.0` (100%) |
+| `note` | `"pre/post SHA256 values are PENDING_REAL_RUN â€” run actual Bob experiments to populate verifier results"` |
+| `status` (top-level) | `"classifier_complete_verifier_pending"` |
+
+**Critical observation:** All 21 drills have `pre_state_sha256`, `post_action_sha256`, and `post_rollback_sha256` set to `"PENDING_REAL_RUN"` â€” the hash-based verifier evidence has not yet been populated from live Bob sessions.
+
+---
+
+### 3. `docs/CLAIMS.json` â€” All Claim IDs and Status
+
+From [`docs/CLAIMS.json`](docs/CLAIMS.json:1):
+
+| Claim ID | Short Description | Status |
+|---|---|---|
+| `rubicon.rollback.001` | Bob rollback restores tracked workspace files (R01) | `DOCUMENTED_ONLY` |
+| `rubicon.rollback.002` | Bob rollback does NOT restore .gitignore-Here is the complete findings report for TASK 08.
+
+---
+
+## RUBICON Phase 4 â€” Causal Benchmark Findings
+
+---
+
+### 1. Why Rubicon Needs 3 Ablation Arms (not just pass/fail)
+
+Three arms are required because a binary pass/fail result cannot isolate which component is responsible for an outcome change. **Arm A (Raw Bob)** establishes the baseline â€” what Bob does without any Rubicon involvement â€” so the experiment has a genuine control. **Arm B (Classifier + Fence)** adds only the pre-action classification and block/permit gate, revealing whether policy enforcement alone accounts for any improvement. **Arm C (Classifier + Verifier)** adds the post-rollback state reconciliation and receipt issuance on top, making the post-rollback verifier the *isolated causal variable* â€” proving that the verifier is load-bearing and not merely a stricter policy masquerading as a new mechanism. Without this three-way separation, a judge could correctly object: *"Maybe your benchmark just rewards a stricter policy."*
+
+---
+
+### 2. `proof/results.json` â€” `metrics` Object Fields and Current Values
+
+| Field | Value |
+|---|---|
+| `total_drills` | `21` |
+| `correct_classifications` | `21` |
+| `outside_rollback_classified` | `7` |
+| `unknown_classified` | `5` |
+| `covered_classified` | `7` |
+| `boundary_classified` | `2` |
+| `classification_accuracy` | `1.0` (100%) |
+| `note` | `"pre/post SHA256 values are PENDING_REAL_RUN â€” run actual Bob experiments to populate verifier results"` |
+| `status` (top-level) | `"classifier_complete_verifier_pending"` |
+
+All 21 drills use `baseline_arm: "A"` and `rubicon_arm: "C"`. Every drill's `pre_state_sha256`, `post_action_sha256`, and `post_rollback_sha256` are `"PENDING_REAL_RUN"` â€” **no live Bob sessions have been executed yet.**
+
+---
+
+### 3. `docs/CLAIMS.json` â€” All Claim IDs and Status
+
+| Claim ID | Status |
+|---|---|
+| `rubicon.rollback.001` | `DOCUMENTED_ONLY` |
+| `rubicon.rollback.002` | `DOCUMENTED_ONLY` |
+| `rubicon.rollback.003` | `DOCUMENTED_ONLY` |
+| `rubicon.rollback.004` | `DOCUMENTED_ONLY` |
+| `rubicon.rollback.005` | `DOCUMENTED_ONLY` |
+| `rubicon.rollback.006` | `DOCUMENTED_ONLY` |
+| `rubicon.classifier.001` | **`VERIFIED`** |
+| `rubicon.classifier.002` | **`VERIFIED`** |
+| `rubicon.classifier.003` | **`VERIFIED`** |
+| `rubicon.permit.001` | **`VERIFIED`** |
+| `rubicon.permit.002` | **`VERIFIED`** |
+| `rubicon.invariant.001` | **`VERIFIED`** |
+| `rubicon.limitation.001` | **`VERIFIED`** |
+
+**Summary:** 7 claims are `VERIFIED`, 6 are `DOCUMENTED_ONLY`.
+
+---
+
+### 4. VERIFIED by Tests vs. Needs Real Bob Experiment Results
+
+#### âœ… VERIFIED by automated unit/integration tests (`make test`)
+
+These are verified entirely within the codebase â€” no live Bob session required:
+
+| Claim ID | What it covers |
+|---|---|
+| `rubicon.classifier.001` | Classifier â†’ `OUTSIDE_ROLLBACK` for `git push` |
+| `rubicon.classifier.002` | Classifier â†’ `UNKNOWN_EFFECT` for opaque shell (`bash -c`, `node -e`, etc.) |
+| `rubicon.classifier.003` | Classifier â†’ `COVERED_REVERSIBLE` for read-only tools |
+| `rubicon.permit.001` | Stale (expired) permit is rejected |
+| `rubicon.permit.002` | Consumed permit cannot be replayed |
+| `rubicon.invariant.001` | Deterministic core runs without watsonx credentials |
+| `rubicon.limitation.001` | Opaque shell classified as `UNKNOWN_EFFECT` (limitation acknowledged) |
+
+#### â?³ DOCUMENTED_ONLY â€” Need real Bob experiment results
+
+These require live Bob sessions with actual rollback invocation and SHA256 state capture:
+
+| Claim ID | What needs to be observed |
+|---|---|
+| `rubicon.rollback.001` | Bob actually restores a tracked workspace file after rollback (R01) |
+| `rubicon.rollback.002` | Bob rollback does **not** restore `.gitignore`-excluded files (R03) |
+| `rubicon.rollback.003` | Bob rollback does **not** affect remote Git refs after `git push` (R07) |
+| `rubicon.rollback.004` | Bob rollback does **not** restore files written outside workspace root (R08) |
+| `rubicon.rollback.005` | Bob rollback does **not** restore SQLite mutations (R09) |
+| `rubicon.rollback.006` | HTTP POST events to a local fixture persist after Bob rollback (R11) |
+
+---
+
+### 5. Formula for `rollback_fidelity` (Section 16)
+
+```
+rollback_fidelity = restored_effects / effects_predicted_as_restorable
+```
+
+> The instruction notes: *"Do not report this until the test oracle and corpus are fixed."*
+
+---
+
+### 6. Formula for `coverage_prediction_accuracy` (Section 16)
+
+```
+coverage_prediction_accuracy = correct_coverage_predictions / coverage_predictions
+```
+
+---
+
+### 7. Formula for `residual_detection_rate` (Section 16)
+
+```
+residual_detection_rate = residual_effects_detected / seeded_residual_effects
+```
+
+---
+
+### 8. Data Needed to Compute These Metrics from Real Bob Experiments
+
+For each drill, a live Bob session must be run and the following values captured:
+
+| Metric | Required Data |
+|---|---|
+| **`rollback_fidelity`** | For each drill classified as `COVERED_REVERSIBLE`: (a) actual SHA256 of state before action (`pre_state_sha256`), (b) actual SHA256 after rollback (`post_rollback_sha256`), (c) binary: did `post_rollback_sha256 == pre_state_sha256`? â†’ count of `restored_effects` and `effects_predicted_as_restorable` |
+| **`coverage_prediction_accuracy`** | For every drill: (a) Rubicon's predicted coverage class (`policy_decision`), (b) observed verifier verdict (`verifier_verdict`) â€” count of matches (`correct_coverage_predictions`) over total predictions (`coverage_predictions` = 21) |
+| **`residual_detection_rate`** | For drills that are expected to leave residual state (e.g. R07 remote push, R08 outside-workspace write, R11 HTTP POST): (a) seed known residual effects deliberately, (b) count how many the Rubicon verifier independently detects (`residual_effects_detected`) vs. how many were seeded (`seeded_residual_effects`) |
+
+**Concretely, the three SHA256 placeholder fields across all 21 drills must be populated:**
+- `pre_state_sha256` â€” hash workspace state snapshot before Bob acts
+- `post_action_sha256` â€” hash after Bob executes the tool call  
+- `post_rollback_sha256` â€” hash after Bob rollback is invoked
+
+Until these are captured from real sessions, `rollback_fidelity` and `residual_detection_rate` cannot be computed, and `coverage_prediction_accuracy` is trivially 1.0 because all `classification_correct` fields are hardcoded `true` by the scaffold.

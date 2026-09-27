@@ -1,0 +1,28 @@
+{
+  "receipt_version": "1",
+  "session_id": "rubicon-campaign-r13",
+  "action_id": "sha256:0f9d6ec6401129b41588c3b6571cddbef6867e7bb2ede93dc6188c54e268dfad",
+  "policy_version": "1.0.0",
+  "verifier_version": "1.0.0",
+  "pre_manifest_sha256": "e1503e0e369978d72f4fb7ebe257902836a0195274681a16f4e31fecd20aef74",
+  "post_action_manifest_sha256": "6bc41258689d7b5e8dfdd9e56fc1e2de4ea41762d9095045fd910d2d10f4d005",
+  "post_rollback_manifest_sha256": "cec3eb25905ef2fd1d6aae3b68307e2145a7ae97e69d538bfb23f9ff2d862e0c",
+  "domain_results": [
+    {
+      "domain": "UNKNOWN",
+      "result": "NOT_OBSERVABLE",
+      "pre_hash": null,
+      "post_action_hash": null,
+      "post_rollback_hash": null,
+      "notes": "No verifier adapter registered for domain UNKNOWN"
+    }
+  ],
+  "decision": "UNKNOWN",
+  "observability": {
+    "UNKNOWN": "NOT_OBSERVABLE"
+  },
+  "limitations": [
+    "Domain UNKNOWN is not independently observable by Rubicon verifier"
+  ],
+  "signature": "915dde19bcfd36dd1a0c7ab9abde9bb7528ed0a0df496cb0968d76568b7849643b6362d8d4a551cba5f932b79493e19963cf5a27db6004b2db19570103fa7309"
+}

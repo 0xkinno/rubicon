@@ -1,0 +1,88 @@
+All files read. Here are the findings:
+
+---
+
+## TASK 04 Findings: PreToolUse Hook Integration
+
+### 1. Hook configuration in [`.bob/settings.json`](.bob/settings.json)
+
+âœ… **All three hooks are configured.** The file registers:
+- `PreToolUse` â†’ `python3 scripts/hooks/pretooluse.py` with matcher `"*"` (all tools)
+- `PostToolUse` â†’ `python3 scripts/hooks/posttooluse.py` with matcher `"*"` (all tools)
+- `Stop` â†’ `python3 scripts/hooks/stop.py` (no matcher needed; fires on session end)
+
+---
+
+### 2. Exit code 2 used to block tools
+
+âœ… **Confirmed.** The file header comment (line 8) is explicit: `"Exit code 2 = block the tool."` Every BLOCK path in [`main()`](scripts/hooks/pretooluse.py:62) sets `exit_code = 2` and the final line calls [`sys.exit(main())`](scripts/hooks/pretooluse.py:236).
+
+---
+
+### 3. Internal tools whitelist
+
+âœ… **Confirmed.** Lines 88â€“95 define `_INTERNAL_TOOLS` as a Python set of 18 Bob meta-tools (e.g. `update_todo_list`, `use_skill`, `GetSymbolsOverview`, `spawn_subagent`, etc.). Any tool_name in that set returns `0` immediately â€” no classification attempted.
+
+---
+
+### 4. Decision ledger written to `data/decisions.jsonl`
+
+âœ… **Confirmed.** Line 49:
+```python
+_LEDGER_PATH = _ROOT / "data" / "decisions.jsonl"
+```
+The [`_log_decision()`](scripts/hooks/pretooluse.py:52) function creates the directory if absent (`mkdir(parents=True, exist_ok=True)`) and appends a JSON line for every non-whitelisted tool invocation.
+
+---
+
+### 5. Fail-closed path returns exit code 2 for `UNKNOWN_EFFECT`
+
+âœ… **Confirmed.** The branch at lines 165â€“209 matches:
+```python
+elif result in (ClassificationResult.OUTSIDE_ROLLBACK, ClassificationResult.UNKNOWN_EFFECT,
+                ClassificationResult.UNOBSERVABLE_EFFECT, ClassificationResult.DENY_POLICY):
+```
+When no valid permit is present, this path sets `exit_code = 2`. `UNKNOWN_EFFECT` is explicitly in this group â€” the hook never silently allows an unknown-effect action.
+
+---
+
+### 6. Three classification results that produce BLOCK (not ALLOW)
+
+Per RUBICON_INSTRUCTION.md Â§7.4 and the hook's branching logic:
+
+| Classification | Block? | Notes |
+|---|---|---|
+| `OUTSIDE_ROLLBACK` | âœ… BLOCK | Effect outside Bob's rollback contract |
+| `UNKNOWN_EFFECT` | âœ… BLOCK | Cannot be classified â€” fail closed |
+| `UNOBSERVABLE_EFFECT` | âœ… BLOCK | Effect exists but cannot be observed |
+| (`DENY_POLICY`) | âœ… BLOCK | Explicit policy denial â€” 4th blocking result |
+
+Three that are *not* ALLOW: **`OUTSIDE_ROLLBACK`, `UNKNOWN_EFFECT`, `UNOBSERVABLE_EFFECT`** (plus `DENY_POLICY` â€” all four share the same branch). `BOUNDARY_REQUIRES_PERMIT` also blocks when no permit is present, but is a separate conditional branch.
+
+---
+
+### 7. Why the hook checks `stdin.isatty()` before reading input
+
+[Line 68](scripts/hooks/pretooluse.py:68): `raw = sys.stdin.read() if not sys.stdin.isatty() else ""`
+
+When a developer runs the script directly in a terminal (e.g. for testing), `stdin` is a TTY and `sys.stdin.read()` would block indefinitely waiting for keyboard input. The `isatty()` guard short-circuits to an empty string in that case, causing the hook to return `0` (allow through) rather than hanging â€” preserving normal developer ergonomics while still processing the structured JSON that Bob pipes in during a real hook invocation.
+
+---
+
+### 8. Ledger fields logged per decision
+
+âœ… **Confirmed.** The [`_log_decision()`](scripts/hooks/pretooluse.py:213) call at lines 213â€“223 writes exactly these fields to the JSONL ledger:
+
+| Field | Source |
+|---|---|
+| `ts` | `time.time()` |
+| `session_id` | `_SESSION_ID` env var |
+| `tool` | `tool_name` from stdin |
+| `action_id` | `vector.action_id` (from classifier) |
+| `classification` | `result.value` (e.g. `"COVERED_REVERSIBLE"`) |
+| `domains` | `vector.domains` (list of affected state domains) |
+| `decision` | `"ALLOW"` if exit_code == 0, else `"BLOCK"` |
+| `reason` | `block_reason` or `vector.reason` |
+| `permit_id` | permit_id from tool_input if present |
+
+All five required fields from the task (`tool`, `action_id`, `classification`, `decision`, `domains`) are confirmed present. âœ…

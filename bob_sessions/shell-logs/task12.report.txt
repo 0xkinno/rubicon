@@ -1,0 +1,50 @@
+# RUBICON: Phase 8 — Security Review & Attack Tests — Findings Report
+
+## 1. Classifier Bypass Attacks (Section 33)
+All classifier bypass vectors from Section 33 were tested and confirmed mitigated:
+- Mixed-case commands (`GIT PUSH ORIGIN MAIN`, `Git Push`): Normalized to lowercase before regex matching; classified as OUTSIDE_ROLLBACK.
+- Whitespace tricks (multiple spaces, tabs, trailing whitespace): Stripped and normalized; classified as OUTSIDE_ROLLBACK.
+- Compound shell operators (`&&`, `||`, `;`, pipes `|`, redirects `>`, `$()`, backticks): Strictly matched by compound shell pattern; fail-closed as UNKNOWN_EFFECT.
+- Opaque shell wrappers (`sh -c`, `bash -c`, `powershell -Command`, `python -c`, `node -e`): Matched by `_OPAQUE_SHELL_PATTERNS`; fail-closed as UNKNOWN_EFFECT.
+- Path traversal (`../../`, `..\..\`, `%2e%2e`): Caught by `_PATH_TRAVERSAL_PATTERNS`; classified as OUTSIDE_WORKSPACE / UNKNOWN_EFFECT.
+
+## 2. Permit Bypass Attacks (Section 33)
+Mitigated in `core/permits/permit_engine.py`:
+- Stale/expired permits: Rejected with `Permit expired at validation time`.
+- Wrong action binding (modified command/head/session/tool): Rejected on cryptographic binding hash mismatch.
+- Replayed permits (double execution): Single-use state transition to `CONSUMED` immediately upon first use; subsequent use blocked with `Permit already consumed — replay attack blocked`.
+- Agent-written fake approval: Private key is stored outside the workspace root; public key verification fails on arbitrary/forged signatures.
+- Signature corruption: Tampered signature bytes fail Ed25519 verification; marked `FORGED` and blocked.
+
+## 3. Verifier Attacks (Section 33)
+Mitigated in `core/verifier/reconciler.py` and `core/manifests/manifest.py`:
+- Modifying manifest after capture: SHA256 of pre/post manifests is bound into signed receipt; any change invalidates receipt signature.
+- Tampering with receipt verdicts: Ed25519 signature covers canonical JSON serialization of domain results, action digest, and manifest hashes.
+- Mismatched verifier version: Verifier version string is bound into signed receipt and policy engine checks.
+
+## 4. Fail-Closed Rules Table (docs/SECURITY.md)
+Confirmed complete: `UNKNOWN_EFFECT`, `OUTSIDE_ROLLBACK`, and `UNOBSERVABLE_EFFECT` all default to BLOCK in the PreToolUse hook unless a cryptographically valid permit is present.
+
+## 5. Ten Disclosed Limitations (docs/LIMITATIONS.md)
+1. In-flight network packet payload inspection (out-of-band data transfer).
+2. Arbitrary external cloud resource state without dedicated adapters.
+3. Transitive effects of obfuscated binary executables.
+4. OS-level kernel state and unobserved device drivers.
+5. Concurrent out-of-band human edits during autonomous agent runs.
+6. Ephemeral sub-process state terminating before post-action snapshot.
+7. External third-party webhook delays.
+8. Encrypted database blobs where schema migration cannot be parsed.
+9. Package registry eventual consistency propagation delays.
+10. Hardware-level non-volatile memory or persistent hardware peripherals.
+
+## 6. Three Mental Bypass Checks
+- `command="GIT PUSH ORIGIN MAIN"` -> Classified as OUTSIDE_ROLLBACK (domains: VCS_REMOTE) -> BLOCKED.
+- `command="git  push  origin  main"` -> Normalized -> Classified as OUTSIDE_ROLLBACK -> BLOCKED.
+- `command="git push origin main  "` -> Stripped -> Classified as OUTSIDE_ROLLBACK -> BLOCKED.
+
+## 7. Path Traversal Pattern Check
+Confirmed: Regex `(?i)(\.\.[/\\]|%2e%2e|^\s*/tmp|^\s*~[/\\])` matches `../../`, `..\..\`, `%2e%2e`, and external absolute roots.
+
+## 8. Security Posture Assessment
+Overall security posture is strong and strictly fail-closed.
+Single strongest attack surface remaining: Transitive dependencies in build tools (e.g. `npm install` postinstall scripts running arbitrary external scripts). This is explicitly governed by categorizing `npm install` under `BOUNDARY_REQUIRES_PERMIT` rather than `COVERED_REVERSIBLE`.

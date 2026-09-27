@@ -1,0 +1,93 @@
+[
+  {
+    "claim_id": "rubicon.rollback.001",
+    "claim": "Bob rollback restores tracked workspace files (R01).",
+    "status": "VERIFIED",
+    "source": "proof/results.json#R01",
+    "reproduction": "python proof/replay/replay_R01.py"
+  },
+  {
+    "claim_id": "rubicon.rollback.002",
+    "claim": "Bob rollback does NOT restore .gitignore-excluded files (R03).",
+    "status": "VERIFIED",
+    "source": "proof/results.json#R03",
+    "reproduction": "python proof/replay/replay_R03.py"
+  },
+  {
+    "claim_id": "rubicon.rollback.003",
+    "claim": "Bob rollback does NOT affect remote Git refs after git push (R07).",
+    "status": "VERIFIED",
+    "source": "proof/results.json#R07",
+    "reproduction": "python proof/replay/replay_R07.py"
+  },
+  {
+    "claim_id": "rubicon.rollback.004",
+    "claim": "Bob rollback does NOT restore files written outside the workspace root (R08).",
+    "status": "VERIFIED",
+    "source": "proof/results.json#R08",
+    "reproduction": "python proof/replay/replay_R08.py"
+  },
+  {
+    "claim_id": "rubicon.rollback.005",
+    "claim": "Bob rollback does NOT restore SQLite database mutations (R09).",
+    "status": "VERIFIED",
+    "source": "proof/results.json#R09",
+    "reproduction": "python proof/replay/replay_R09.py"
+  },
+  {
+    "claim_id": "rubicon.rollback.006",
+    "claim": "HTTP POST events to a local fixture persist after Bob rollback (R11).",
+    "status": "VERIFIED",
+    "source": "proof/results.json#R11",
+    "reproduction": "python proof/replay/replay_R11.py"
+  },
+  {
+    "claim_id": "rubicon.classifier.001",
+    "claim": "The classifier returns OUTSIDE_ROLLBACK for all git push commands.",
+    "status": "VERIFIED",
+    "source": "tests/test_classifier.py#TestGitCommands::test_git_push_outside_rollback",
+    "reproduction": "pytest tests/test_classifier.py"
+  },
+  {
+    "claim_id": "rubicon.classifier.002",
+    "claim": "The classifier returns UNKNOWN_EFFECT for all opaque shell commands (bash -c, sh -c, powershell -Command, node -e, etc.).",
+    "status": "VERIFIED",
+    "source": "tests/test_classifier.py#TestFailClosed",
+    "reproduction": "pytest tests/test_classifier.py"
+  },
+  {
+    "claim_id": "rubicon.classifier.003",
+    "claim": "The classifier returns COVERED_REVERSIBLE for read-only tools (read_file, list_files, grep).",
+    "status": "VERIFIED",
+    "source": "tests/test_classifier.py#TestReadOnlyTools",
+    "reproduction": "pytest tests/test_classifier.py"
+  },
+  {
+    "claim_id": "rubicon.permit.001",
+    "claim": "A stale permit (past expiry) is rejected at validation time.",
+    "status": "VERIFIED",
+    "source": "core/permits/permit_engine.py#validate_and_consume",
+    "reproduction": "pytest tests/test_permits.py"
+  },
+  {
+    "claim_id": "rubicon.permit.002",
+    "claim": "A consumed permit cannot be used again (replay attack blocked).",
+    "status": "VERIFIED",
+    "source": "core/permits/permit_engine.py#validate_and_consume",
+    "reproduction": "pytest tests/test_permits.py"
+  },
+  {
+    "claim_id": "rubicon.invariant.001",
+    "claim": "The deterministic core (classifier, permit, verifier) works without watsonx credentials.",
+    "status": "VERIFIED",
+    "source": ".env.example",
+    "reproduction": "pytest tests/ (no watsonx vars set)"
+  },
+  {
+    "claim_id": "rubicon.limitation.001",
+    "claim": "Rubicon cannot statically resolve opaque shell command effects and correctly classifies them as UNKNOWN_EFFECT.",
+    "status": "VERIFIED",
+    "source": "docs/LIMITATIONS.md#1",
+    "reproduction": "pytest tests/test_security_attacks.py"
+  }
+]

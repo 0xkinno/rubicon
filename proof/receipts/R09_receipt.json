@@ -1,0 +1,26 @@
+{
+  "receipt_version": "1",
+  "session_id": "rubicon-campaign-r09",
+  "action_id": "sha256:2345cc84a3d4e911be62dafb8c01126b1006e1706ee325e2a7bca14226d2b93d",
+  "policy_version": "1.0.0",
+  "verifier_version": "1.0.0",
+  "pre_manifest_sha256": "f66efb50a4b179c2e7a4fe64264c631a622d0ee4d52c428d51a3e72f0dec2b5c",
+  "post_action_manifest_sha256": "f94127e7ff6f794d2142772a82fcc27bab753df2b04cb131a02955d4954cbc13",
+  "post_rollback_manifest_sha256": "3e3b689eb2adb26802b6b3e7d4302585cb521ab3f5cca7b4045342394e9b4c3d",
+  "domain_results": [
+    {
+      "domain": "DATABASE_STATE",
+      "result": "RESTORED",
+      "pre_hash": "2a60edd935b6820cb7a861e06850624e22bb783b8289a4ad9d19f68009e92f87",
+      "post_action_hash": "2a60edd935b6820cb7a861e06850624e22bb783b8289a4ad9d19f68009e92f87",
+      "post_rollback_hash": "2a60edd935b6820cb7a861e06850624e22bb783b8289a4ad9d19f68009e92f87",
+      "notes": "State unchanged throughout (action had no effect on this domain)"
+    }
+  ],
+  "decision": "RESTORED",
+  "observability": {
+    "DATABASE_STATE": "RESTORED"
+  },
+  "limitations": [],
+  "signature": "e891c3b2befb5251494c1428cea4ba073a1e1eaa4f2ca496be66bd979a906bdf8630e8a58e79df8b3a3c5ed44564c7fdd75a84205642d331baa4cb67e734ba0a"
+}

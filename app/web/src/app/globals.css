@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Typography Imports ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+/* ── Default (Dark Mode: Obsidian Technical Canvas) ─────────────────────── */
+:root {
+  color-scheme: dark;
+  --bg-paper: #08070d;
+  --bg-surface: #0e0b17;
+  --bg-card: rgba(16, 13, 26, 0.82);
+  --bg-card-hover: rgba(24, 19, 38, 0.9);
+  --text-ink: #f7f6fc;
+  --text-muted: #9f99b0;
+  --border-line: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(220, 20, 60, 0.22);
+  --border-card-hover: rgba(220, 20, 60, 0.45);
+  
+  --nav-bg: rgba(8, 7, 13, 0.85);
+  --nav-border: rgba(255, 255, 255, 0.08);
+
+  --rubicon-crimson: #8b0000;
+  --rubicon-threshold: #dc143c;
+  --rubicon-amber: #d97706;
+  --rubicon-gradient: linear-gradient(90deg, #8b0000 0%, #dc143c 50%, #d97706 100%);
+  
+  --chip-restored-bg: rgba(16, 185, 129, 0.12);
+  --chip-restored-text: #34d399;
+  --chip-restored-border: rgba(16, 185, 129, 0.3);
+
+  --chip-breach-bg: rgba(220, 20, 60, 0.15);
+  --chip-breach-text: #ff4d6d;
+  --chip-breach-border: rgba(220, 20, 60, 0.35);
+
+  --chip-partial-bg: rgba(217, 119, 6, 0.14);
+  --chip-partial-text: #fbbf24;
+  --chip-partial-border: rgba(217, 119, 6, 0.35);
+
+  --chip-unknown-bg: rgba(255, 255, 255, 0.06);
+  --chip-unknown-text: #c4b5fd;
+  --chip-unknown-border: rgba(255, 255, 255, 0.12);
+
+  --card-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(220, 20, 60, 0.18);
+  --glow-accent: 0 0 35px -5px rgba(220, 20, 60, 0.22);
+}
+
+/* ── Light Mode (Editorial Technical Luxury) ─────────────────────────────── */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg-paper: #faf9f6;
+  --bg-surface: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.94);
+  --bg-card-hover: #ffffff;
+  --text-ink: #14121b;
+  --text-muted: #5e5768;
+  --border-line: rgba(20, 18, 27, 0.08);
+  --border-card: rgba(220, 20, 60, 0.18);
+  --border-card-hover: rgba(220, 20, 60, 0.4);
+  
+  --nav-bg: rgba(250, 249, 246, 0.88);
+  --nav-border: rgba(20, 18, 27, 0.08);
+
+  --rubicon-crimson: #8b0000;
+  --rubicon-threshold: #dc143c;
+  --rubicon-amber: #d97706;
+  --rubicon-gradient: linear-gradient(90deg, #8b0000 0%, #dc143c 50%, #d97706 100%);
+
+  --chip-restored-bg: #ecfdf5;
+  --chip-restored-text: #065f46;
+  --chip-restored-border: #a7f3d0;
+
+  --chip-breach-bg: #fff1f2;
+  --chip-breach-text: #9f1239;
+  --chip-breach-border: #fecdd3;
+
+  --chip-partial-bg: #fffbeb;
+  --chip-partial-text: #92400e;
+  --chip-partial-border: #fde68a;
+
+  --chip-unknown-bg: #f3f4f6;
+  --chip-unknown-text: #374151;
+  --chip-unknown-border: #e5e7eb;
+
+  --card-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.06), 0 0 1px 1px rgba(220, 20, 60, 0.1);
+  --glow-accent: 0 0 25px -4px rgba(220, 20, 60, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background-color: var(--bg-paper);
+  color: var(--text-ink);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  max-width: 100%;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── Technical Font Classes ──────────────────────────────────────────────── */
+.font-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ── OpenStock Lustre Card Treatment ─────────────────────────────────────── */
+.rubicon-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rubicon-card:hover {
+  border-color: var(--border-card-hover);
+  box-shadow: var(--card-shadow), var(--glow-accent);
+}
+
+/* ── Live Pulse Kicker (OpenStock Pattern) ────────────────────────────────── */
+.workspace-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(220, 20, 60, 0.1);
+  border: 1px solid rgba(220, 20, 60, 0.25);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--rubicon-threshold);
+  font-weight: 500;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--rubicon-threshold);
+  box-shadow: 0 0 10px var(--rubicon-threshold);
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ── Refined Status Badges ───────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+}
+
+.chip-restored {
+  background: var(--chip-restored-bg);
+  color: var(--chip-restored-text);
+  border: 1px solid var(--chip-restored-border);
+}
+
+.chip-breach {
+  background: var(--chip-breach-bg);
+  color: var(--chip-breach-text);
+  border: 1px solid var(--chip-breach-border);
+}
+
+.chip-partial {
+  background: var(--chip-partial-bg);
+  color: var(--chip-partial-text);
+  border: 1px solid var(--chip-partial-border);
+}
+
+.chip-unknown {
+  background: var(--chip-unknown-bg);
+  color: var(--chip-unknown-text);
+  border: 1px solid var(--chip-unknown-border);
+}
+
+/* ── Theme Toggle Switch (OpenStock Styling) ─────────────────────────────── */
+button.theme-toggle {
+  position: relative;
+  width: 48px;
+  min-width: 48px;
+  height: 26px;
+  min-height: 26px;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid var(--border-line);
+  border-radius: 999px;
+  background: rgba(120, 110, 140, 0.15);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+button.theme-toggle:hover {
+  border-color: var(--rubicon-threshold);
+}
+
+.theme-toggle__knob {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  transform: translateX(0);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
+}
+
+button.theme-toggle.is-dark {
+  border-color: rgba(220, 20, 60, 0.4);
+  background: rgba(220, 20, 60, 0.16);
+}
+
+button.theme-toggle.is-dark .theme-toggle__knob {
+  background: #14121b;
+  transform: translateX(22px);
+}
+
+/* ── The Rubicon Line Graphic ────────────────────────────────────────────── */
+.rubicon-river-line {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--rubicon-gradient);
+  box-shadow: 0 0 16px rgba(220, 20, 60, 0.4);
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 140, 170, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(220, 20, 60, 0.5);
+}

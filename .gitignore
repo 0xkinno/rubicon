@@ -1,0 +1,81 @@
+﻿# ============================================================
+# RUBICON — .gitignore
+# ============================================================
+
+# --- REFERENCE FOLDER (competitor analysis, cloned repos) ---
+# NEVER commit competitor data, clones, or analysis
+reference/
+
+# --- Environment / secrets ---
+.env
+.env.local
+.env.*.local
+*.pem
+!keys/rubicon-verifier.pub.pem
+
+# --- Private signing key (MUST stay outside workspace; listed here as safety net) ---
+rubicon-signer.key
+rubicon_signer_private.pem
+
+# --- Node ---
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.class
+*.egg-info/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+dist/
+*.dist-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- SQLite databases (data domain; excluded per Bob rollback contract) ---
+*.sqlite
+*.sqlite3
+*.db
+
+# --- Logs ---
+*.log
+logs/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Bob IDE internals ---
+.bob/.tasks/
+.bob/snapshots/
+
+# --- Playwright ---
+test-results/
+playwright-report/
+
+# --- Build artifacts ---
+*.pyc
+*.pyo
+coverage/
+.coverage
+htmlcov/
+
+# --- Temp ---
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+.vercel

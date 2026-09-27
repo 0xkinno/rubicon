@@ -1,0 +1,155 @@
+{
+  "ts": 1790483015.5536542,
+  "results": [
+    {
+      "page": "landing",
+      "viewport": "375x667",
+      "device": "iPhone SE",
+      "file": "landing_375x667.png",
+      "horizontal_overflow": false,
+      "scroll_width": 375,
+      "viewport_width": 375,
+      "status": "ok"
+    },
+    {
+      "page": "dashboard",
+      "viewport": "375x667",
+      "device": "iPhone SE",
+      "file": "dashboard_375x667.png",
+      "horizontal_overflow": false,
+      "scroll_width": 375,
+      "viewport_width": 375,
+      "status": "ok"
+    },
+    {
+      "page": "proof",
+      "viewport": "375x667",
+      "device": "iPhone SE",
+      "file": "proof_375x667.png",
+      "horizontal_overflow": false,
+      "scroll_width": 375,
+      "viewport_width": 375,
+      "status": "ok"
+    },
+    {
+      "page": "landing",
+      "viewport": "393x852",
+      "device": "iPhone 14 Pro",
+      "file": "landing_393x852.png",
+      "horizontal_overflow": false,
+      "scroll_width": 393,
+      "viewport_width": 393,
+      "status": "ok"
+    },
+    {
+      "page": "dashboard",
+      "viewport": "393x852",
+      "device": "iPhone 14 Pro",
+      "file": "dashboard_393x852.png",
+      "horizontal_overflow": false,
+      "scroll_width": 393,
+      "viewport_width": 393,
+      "status": "ok"
+    },
+    {
+      "page": "proof",
+      "viewport": "393x852",
+      "device": "iPhone 14 Pro",
+      "file": "proof_393x852.png",
+      "horizontal_overflow": false,
+      "scroll_width": 393,
+      "viewport_width": 393,
+      "status": "ok"
+    },
+    {
+      "page": "landing",
+      "viewport": "360x800",
+      "device": "Android",
+      "file": "landing_360x800.png",
+      "horizontal_overflow": false,
+      "scroll_width": 360,
+      "viewport_width": 360,
+      "status": "ok"
+    },
+    {
+      "page": "dashboard",
+      "viewport": "360x800",
+      "device": "Android",
+      "file": "dashboard_360x800.png",
+      "horizontal_overflow": false,
+      "scroll_width": 360,
+      "viewport_width": 360,
+      "status": "ok"
+    },
+    {
+      "page": "proof",
+      "viewport": "360x800",
+      "device": "Android",
+      "file": "proof_360x800.png",
+      "horizontal_overflow": false,
+      "scroll_width": 360,
+      "viewport_width": 360,
+      "status": "ok"
+    },
+    {
+      "page": "landing",
+      "viewport": "768x1024",
+      "device": "iPad",
+      "file": "landing_768x1024.png",
+      "horizontal_overflow": false,
+      "scroll_width": 768,
+      "viewport_width": 768,
+      "status": "ok"
+    },
+    {
+      "page": "dashboard",
+      "viewport": "768x1024",
+      "device": "iPad",
+      "file": "dashboard_768x1024.png",
+      "horizontal_overflow": false,
+      "scroll_width": 768,
+      "viewport_width": 768,
+      "status": "ok"
+    },
+    {
+      "page": "proof",
+      "viewport": "768x1024",
+      "device": "iPad",
+      "file": "proof_768x1024.png",
+      "horizontal_overflow": false,
+      "scroll_width": 768,
+      "viewport_width": 768,
+      "status": "ok"
+    },
+    {
+      "page": "landing",
+      "viewport": "1440x900",
+      "device": "Desktop",
+      "file": "landing_1440x900.png",
+      "horizontal_overflow": false,
+      "scroll_width": 1440,
+      "viewport_width": 1440,
+      "status": "ok"
+    },
+    {
+      "page": "dashboard",
+      "viewport": "1440x900",
+      "device": "Desktop",
+      "file": "dashboard_1440x900.png",
+      "horizontal_overflow": false,
+      "scroll_width": 1440,
+      "viewport_width": 1440,
+      "status": "ok"
+    },
+    {
+      "page": "proof",
+      "viewport": "1440x900",
+      "device": "Desktop",
+      "file": "proof_1440x900.png",
+      "horizontal_overflow": false,
+      "scroll_width": 1440,
+      "viewport_width": 1440,
+      "status": "ok"
+    }
+  ]
+}

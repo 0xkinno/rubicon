@@ -1,0 +1,147 @@
+Here is the full findings report for **RUBICON: Phase 1 â€” Effect Domain Model & Classifier**:
+
+---
+
+## Findings Report
+
+### 1. All 12 StateDomain enum values â€” [`core/models.py`](core/models.py:18)
+
+All 12 match Section 7.2 exactly:
+
+| # | Value |
+|---|-------|
+| 1 | `WORKSPACE_TRACKED` |
+| 2 | `WORKSPACE_IGNORED` |
+| 3 | `WORKSPACE_EXCLUDED` |
+| 4 | `VCS_LOCAL` |
+| 5 | `VCS_REMOTE` |
+| 6 | `PACKAGE_REGISTRY` |
+| 7 | `EXTERNAL_NETWORK` |
+| 8 | `PROCESS_RUNTIME` |
+| 9 | `OUTSIDE_WORKSPACE` |
+| 10 | `DATABASE_STATE` |
+| 11 | `CREDENTIAL_STATE` |
+| 12 | `UNKNOWN` |
+
+âœ… **Exact match to spec Section 7.2.**
+
+---
+
+### 2. EffectVector dataclass fields vs. Section 7.1 â€” [`core/models.py`](core/models.py:100)
+
+Section 7.1 requires these fields in the example schema:
+
+| Spec field | Implementation field | Status |
+|---|---|---|
+| `action_id` | `action_id: str` | âœ… |
+| `session_id` | `session_id: str` | âœ… |
+| `tool` | `tool: str` | âœ… |
+| `normalized_action` | `normalized_action: str` | âœ… |
+| `domains` | `domains: list[str]` | âœ… |
+| `paths` | `paths: list[str]` | âœ… |
+| `network_targets` | `network_targets: list[str]` | âœ… |
+| `process_lifetime` | `process_lifetime: str` | âœ… |
+| `rollback_contract` | `rollback_contract: str` | âœ… |
+| `observability` | `observability: str` | âœ… |
+| `decision` | `decision: str` | âœ… |
+| `reason` | `reason: str` | âœ… |
+
+**Extra field not in spec:** `raw_input: Optional[dict]` â€” an implementation addition for audit traceability. Not a gap; it is additive.
+
+âœ… **All 12 spec fields present. One additive field.**
+
+---
+
+### 3. ClassificationResult enum â€” all 6 required types â€” [`core/models.py`](core/models.py:37)
+
+Section 7.4 requires:
+
+| Spec value | Implemented | Status |
+|---|---|---|
+| `COVERED_REVERSIBLE` | âœ… | Match |
+| `BOUNDARY_REQUIRES_PERMIT` | âœ… | Match |
+| `OUTSIDE_ROLLBACK` | âœ… | Match |
+| `UNKNOWN_EFFECT` | âœ… | Match |
+| `UNOBSERVABLE_EFFECT` | âœ… | Match |
+| `DENY_POLICY` | âœ… | Match |
+
+âœ… **All 6 types present, names match spec exactly.**
+
+---
+
+### 4. rollback_contract.yaml â€” all 12 domains have `policy_defaults` entries â€” [`config/rollback_contract.yaml`](config/rollback_contract.yaml:107)
+
+The `policy_defaults` block at line 107â€“119 covers:
+
+| Domain | Default |
+|---|---|
+| `WORKSPACE_TRACKED` | `COVERED_REVERSIBLE` |
+| `WORKSPACE_IGNORED` | `BOUNDARY_REQUIRES_PERMIT` |
+| `WORKSPACE_EXCLUDED` | `OUTSIDE_ROLLBACK` |
+| `VCS_LOCAL` | `BOUNDARY_REQUIRES_PERMIT` |
+| `VCS_REMOTE` | `OUTSIDE_ROLLBACK` |
+| `PACKAGE_REGISTRY` | `OUTSIDE_ROLLBACK` |
+| `EXTERNAL_NETWORK` | `OUTSIDE_ROLLBACK` |
+| `PROCESS_RUNTIME` | `OUTSIDE_ROLLBACK` |
+| `OUTSIDE_WORKSPACE` | `OUTSIDE_ROLLBACK` |
+| `DATABASE_STATE` | `OUTSIDE_ROLLBACK` |
+| `CREDENTIAL_STATE` | `OUTSIDE_ROLLBACK` |
+| `UNKNOWN` | `UNKNOWN_EFFECT` |
+
+âœ… **All 12 domains present in both the `domains:` block and the `policy_defaults:` block. Perfect alignment.**
+
+---
+
+### 5. Mental classifier runs â€” [`core/classifier/classifier.py`](core/classifier/classifier.py:245)
+
+#### Case A: `tool=execute_command`, `command="git push origin main"`
+- Enters `_route` â†’ `execute_command` branch â†’ `_classify_command`
+- `_normalize_command` â†’ `"git push origin main"` (no change)
+- Compound operator check: none present â†’ pass
+- Path traversal check: none â†’ pass
+- Opaque shell: no â†’ pass
+- Detach pattern: no â†’ pass
+- **`_GIT_PUSH_PATTERN` matches** (`^git\s+push\b`)
+- `_extract_git_remote("git push origin main")` â†’ `["origin"]`
+- **Result:** `OUTSIDE_ROLLBACK`, domains=`[VCS_REMOTE]`, network_targets=`["origin"]`, rollback_contract=`"OUTSIDE"`
+
+#### Case B: `tool=write_file`, `path=".env"`
+- Enters `_route` â†’ `_WRITE_TOOLS` branch â†’ `_classify_write_tool`
+- `_path_matches_env(".env")` â†’ `Path(".env").name.lower() == ".env"` â†’ **True**
+- Returns `_make_outside` with reason `"Writing .env file â€” CREDENTIAL_STATE outside rollback contract"`
+- **Result:** `OUTSIDE_ROLLBACK`, domains=`[CREDENTIAL_STATE, WORKSPACE_EXCLUDED]`, paths=`[".env"]`
+
+#### Case C: `tool=read_file`, `path="src/app.py"`
+- Enters `_route` â†’ `_READ_ONLY_TOOLS` check â†’ `"read_file" in _READ_ONLY_TOOLS` â†’ **True**
+- Returns `_make_covered` immediately with reason `"Read-only tool â€” no state mutation"`
+- **Result:** `COVERED_REVERSIBLE`, domains=`[WORKSPACE_TRACKED]`, rollback_contract=`"INSIDE"`, observability=`"VERIFIABLE"`
+
+---
+
+### 6. `EffectVector.canonical_bytes()` determinism â€” [`core/models.py`](core/models.py:119)
+
+The method is deterministic for three compounding reasons:
+
+1. **Sorted collections:** `domains` and `paths` and `network_targets` are all passed through `sorted()`, which eliminates insertion-order variance. A vector built with `domains=["VCS_REMOTE","UNKNOWN"]` produces identical bytes to one built with `domains=["UNKNOWN","VCS_REMOTE"]`.
+
+2. **`sort_keys=True` in `json.dumps`:** All dict keys are serialized in lexicographic order regardless of Python dict insertion order, eliminating CPython dict ordering variance.
+
+3. **Fixed `separators=(",", ":")`:** No optional whitespace. A single canonical byte sequence is produced regardless of Python version or platform locale.
+
+4. **Excluded mutable / contextual field:** `observability` and `reason` and `raw_input` are intentionally omitted from the canonical payload. Only the action-binding fields (what was proposed, where it would go, what domains, what decision) are signed. This is the correct design: the signature binds the action semantics, not the explanation text.
+
+âœ… **Determinism is structurally guaranteed, not accidental.**
+
+---
+
+### 7. Gaps between spec and implementation
+
+| # | Gap | Severity | Detail |
+|---|---|---|---|
+| **G1** | `UNOBSERVABLE_EFFECT` is never returned by the classifier | Medium | `ClassificationResult.UNOBSERVABLE_EFFECT` is defined in [`core/models.py:43`](core/models.py:43) but no code path in [`classifier.py`](core/classifier/classifier.py) ever produces it. The spec Section 7.4 defines it as a distinct type. It should be returned when a domain is in scope but its adapter returns `NOT_OBSERVABLE`. Currently those cases fall through to `UNKNOWN_EFFECT`. |
+| **G2** | `DENY_POLICY` is never returned by the classifier | Medium | Similarly, `ClassificationResult.DENY_POLICY` is defined but no classifier branch produces it. The spec implies it exists for policy-hard-blocked actions (e.g., an explicit allowlist/denylist rule). |
+| **G3** | `rules_registry.yaml` is loaded but not used in routing | Medium | The classifier loads `_rules` from `config/rules_registry.yaml` via `_load_rules()` at [`classifier.py:212`](core/classifier/classifier.py:212) but the `_route` method never consults `self._rules`. The rule registry is dead code in the current routing logic â€” all decisions use regex patterns inline. |
+| **G4** | `rollback_contract` policy defaults not consulted at runtime | Low | The contract YAML is loaded via `_load_contract()` but `self._contract` is never read in any classification path. The policy_defaults table is correct on disk but is not driving decisions at runtime. |
+| **G5** | `_path_matches_gitignore` is a heuristic, not a real parse | Low | The function at [`classifier.py:170`](core/classifier/classifier.py:170) notes it is a "lightweight heuristic" with hardcoded fragment strings. A write to `dist/output.js` would be flagged, but a custom gitignore entry like `secrets/` would not. The spec says "experimentally confirmed behavior" for `WORKSPACE_IGNORED` â€” the implementation cannot confirm boundary accurately without a real gitignore parser. |
+| **G6** | `process_lifetime` field values not validated against the enum | Low | The spec documents valid values as `"none" \| "ephemeral" \| "persistent"`. The dataclass uses a plain `str`. `_make_unknown` sets it to `"unknown"`, which is not in the documented vocabulary. |
+| **G7** | No `BOUNDARY_REQUIRES_PERMIT` â†’ permit-flow integration in the classifier output | Low | The classifier correctly returns `BOUNDARY_REQUIRES_PERMIT` for git commit, git add, npm install etc. but there is no evidence in `classifier.py` that this result triggers the permit engine. Integration between classifier output and permit engine is not visible in this file â€” it presumably lives in the hook script, but the contract between classifier and permit engine is not enforced in the model layer. |

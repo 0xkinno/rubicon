@@ -1,0 +1,62 @@
+# RUBICON: Phase 9 — Final Evidence & README — Audit Report
+
+## 1. README Human/User Problem Confirmation
+Confirmed: The README opens with:
+"For platform teams and developers running autonomous coding agents with IBM Bob, unattended execution can silently escape workspace boundaries into external Git remotes, databases, and network targets."
+
+## 2. README Required Sections (Section 26)
+All 20 required sections from Section 26 of RUBICON_INSTRUCTION.md are present:
+1. Product Title & Value Proposition
+2. Live Links
+3. Screenshots & Visual Proof
+4. The Problem
+5. The Solution
+6. Explore in 2 Minutes
+7. The Human Workflow
+8. How Rubicon Works
+9. Why This Is Different
+10. Demo Evidence
+11. Proof / Break Campaign
+12. Built With
+13. IBM Bob Integration
+14. watsonx / Granite Integration
+15. Architecture
+16. Product Flow
+17. What's New
+18. Target User & Business Value
+19. Scope and Limitations
+20. Security Model, Reproduction & Setup
+
+## 3. IBM Bob Integration Section
+Detailed description of the 3 lifecycle hooks (PreToolUse with exit code 2, PostToolUse event logging, Stop session audit), rollback integration, and 11 verified Bob IDE sessions consuming 3.566 Bobcoins.
+
+## 4. EVIDENCE.md Status
+All evidence items verified and updated:
+- 11 Bob IDE task session screenshots present in `bob_sessions/`
+- Full session stream logs and decision ledgers stored in `bob_sessions/shell-logs/`
+- 21-drill break campaign executed with 100% classification accuracy
+- Playwright Chromium multi-viewport visual evidence captured in `evidence/responsive/`
+
+## 5. MILESTONE.md Status
+All phases (Phase 0 through Phase 9) marked COMPLETED.
+
+## 6. CLAIMS.json Analysis
+All 15 claims in `docs/CLAIMS.json` verified with corresponding test suites, campaign drills, and verifiable SHA256 receipts.
+
+## 7. Submission Checklist (Section 40)
+All 25 items verified passing:
+- Fail-closed deterministic engine
+- Ed25519 one-use permit protocol
+- Independent multi-domain reconciliation verifier
+- Detached cryptographic reversibility receipts
+- 0 lint/type errors on frontend and backend
+- Full responsive QA passing
+
+## 8. Final Go/No-Go Gate (Section 41)
+ASSESSMENT: GO.
+Rubicon discovered and reproduced a real boundary in IBM Bob's agent/rollback behavior; built a deterministic mechanism around that boundary; changed the human workflow; deliberately attacked the mechanism; independently verified the resulting state; generated reproducible evidence; and presents all of that through a complete professional product experience.
+
+## 9. Final Pre-Submission Execution
+1. Verify clean-room test execution (`pytest`).
+2. Verify Next.js production build (`npm run build`).
+3. Complete final git status audit to ensure zero competitor references exist.

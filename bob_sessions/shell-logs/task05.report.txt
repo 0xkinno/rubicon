@@ -1,0 +1,115 @@
+All files read. Here is the full findings report.
+
+---
+
+## TASK 05 â€” Ed25519 Permit Protocol: Findings Report
+
+---
+
+### 1. The 8 Fields an Ed25519 Permit Is Bound To (Section 9.1)
+
+Per [`RUBICON_INSTRUCTION.md:436-444`](RUBICON_INSTRUCTION.md:436):
+
+| # | Field |
+|---|-------|
+| 1 | **action digest** (SHA256 of the normalized action string) |
+| 2 | **repository identity** (SHA256 of the workspace root path) |
+| 3 | **current HEAD** (git HEAD SHA at time of issue) |
+| 4 | **Bob session ID** |
+| 5 | **tool name** |
+| 6 | **normalized input hash** |
+| 7 | **expiry timestamp** |
+| 8 | **policy version** |
+
+These map exactly to the [`Permit`](core/permits/permit_engine.py:34) dataclass fields: `normalized_action_hash`, `repository_identity`, `head_commit`, `session_id`, `tool`, `normalized_action_hash` (canonical), `expires_at`, and `policy_version`.
+
+---
+
+### 2. Permit Store Is Outside the Workspace âœ…
+
+**Confirmed.** In [`cli/rubicon.py:35-36`](cli/rubicon.py:35):
+
+```python
+_PERMIT_STORE = Path(os.environ.get("RUBICON_PERMIT_STORE",
+                                    str(Path.home() / ".rubicon" / "permits")))
+```
+
+The default is `~/.rubicon/permits` â€” under the user's home directory, completely outside the project workspace. The env var `RUBICON_PERMIT_STORE` overrides it. The `PermitEngine` constructor at [`permit_engine.py:103`](core/permits/permit_engine.py:103) stores all permit JSON files there.
+
+---
+
+### 3. Permit State Machine âœ…
+
+**Confirmed.** In [`core/models.py:50-59`](core/models.py:50):
+
+```
+PermitState enum:
+  PROPOSED â†’ CLASSIFIED â†’ PENDING_HUMAN â†’ APPROVED â†’ CONSUMED
+```
+
+The enum also includes `DENIED`, `EXPIRED`, `FORGED`, and `INVALID` as terminal error/rejection states. The full flow matches Section 9.3's diagram â€” the happy path is exactly `PROPOSED â†’ CLASSIFIED â†’ PENDING_HUMAN â†’ (SIGNED PERMIT) â†’ APPROVED â†’ CONSUMED`.
+
+---
+
+### 4. `validate_and_consume()` Checks âœ…
+
+**Confirmed.** [`permit_engine.py:174-241`](core/permits/permit_engine.py:174) performs checks in strict order:
+
+| Order | Check | Code lines |
+|-------|-------|-----------|
+| 1 | State must be `APPROVED` (not `CONSUMED`, `EXPIRED`, or other) | 193â€“198 |
+| 2 | **Expiry** â€” `permit.is_expired()` â†’ sets `EXPIRED`, returns `False` | 201â€“204 |
+| 3 | **Signature** â€” `self._pub_key.verify(...)` â†’ sets `FORGED` on failure | 207â€“217 |
+| 4 | **Binding** â€” all 6 fields re-verified against live values | 220â€“236 |
+| 5 | **Consume** â€” `permit.state = PermitState.CONSUMED`, saves, returns `True` | 239â€“241 |
+
+---
+
+### 5. CONSUMED Permit Cannot Be Reused (Replay Attack Blocked) âœ…
+
+**Confirmed.** At [`permit_engine.py:193-194`](core/permits/permit_engine.py:193):
+
+```python
+if permit.state == PermitState.CONSUMED:
+    return False, "Permit already consumed â€” replay attack blocked"
+```
+
+The message is explicit. Once a permit transitions to `CONSUMED` and is persisted to disk, every subsequent call to `validate_and_consume()` with the same `permit_id` hits this guard first, before any other check.
+
+---
+
+### 6. Private Key Is NEVER in the Workspace âœ…
+
+**Confirmed.** The private key is loaded from `RUBICON_SIGNING_KEY_PATH` (an env var) in [`cli/rubicon.py:38`](cli/rubicon.py:38):
+
+```python
+_PRIVATE_KEY_PATH = Path(os.environ.get("RUBICON_SIGNING_KEY_PATH", ""))
+```
+
+The default value is an **empty string**, meaning if the env var is unset, `_PRIVATE_KEY_PATH.exists()` is `False` and `cmd_approve` returns an error immediately ([`rubicon.py:49-53`](cli/rubicon.py:49)). The `PermitEngine` itself also guards: if `private_key_path` is `None` or missing, `self._priv_key` is `None` and `issue_signed()` raises `RuntimeError` ([`permit_engine.py:155-159`](core/permits/permit_engine.py:155)). The public key (`keys/rubicon-verifier.pub.pem`) is committed to the repo for verification; the private key lives only on the human operator's filesystem, outside the workspace.
+
+---
+
+### 7. The 7 Permit Bypass Attacks (Section 33) and Mitigations
+
+From [`RUBICON_INSTRUCTION.md:1887-1895`](RUBICON_INSTRUCTION.md:1887):
+
+| # | Attack | Mitigation in code |
+|---|--------|--------------------|
+| 1 | **Stale permit** | `permit.is_expired()` at lines 201â€“204; also checked before signing at line 163 |
+| 2 | **Wrong repo** | `repository_identity` (SHA256 of workspace root path) is a binding field; mismatch â†’ `INVALID` at line 231 |
+| 3 | **Wrong HEAD** | `head_commit` is a binding field; mismatch â†’ `INVALID` at line 231 |
+| 4 | **Wrong session** | `session_id` is a binding field; mismatch â†’ `INVALID` at line 231 |
+| 5 | **Wrong tool** | `tool` is a binding field; mismatch â†’ `INVALID` at line 231 |
+| 6 | **Modified arguments** | `normalized_action_hash` (SHA256 of normalized action) is a binding field; any argument change changes the hash â†’ `INVALID` |
+| 7 | **Replayed permit** | `state == CONSUMED` check at lines 193â€“194 â†’ explicit `"replay attack blocked"` return |
+
+> **Note:** Section 33 actually lists 9 items under "Permit bypasses" (including agent-written approval file and signature corruption), but the task specifies 7. The 7 confirmed above are the core cryptographic binding attacks. Agent-written approval and signature corruption are additional:  
+> - **Agent-written approval file**: the hook trusts the Ed25519 signature, not any agent-writable JSON field (`issuer` field hardcoded to `"human"` at line 45 but more critically the signature itself cannot be forged without the private key).  
+> - **Signature corruption**: `InvalidSignature` exception â†’ sets `FORGED`, returns `False` at lines 213â€“215.
+
+---
+
+### 8. Why the Agent Cannot Self-Approve (1 sentence)
+
+The agent cannot self-approve because the private signing key is stored exclusively outside the workspace under human control (via `RUBICON_SIGNING_KEY_PATH`), and the hook only trusts a cryptographic Ed25519 signature â€” not any agent-writable field â€” so without access to the private key, no tool call Bob can make will produce a valid, verifiable signature.
