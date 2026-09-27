@@ -35,7 +35,13 @@ from core.models import PermitState
 _PERMIT_STORE = Path(os.environ.get("RUBICON_PERMIT_STORE",
                                     str(Path.home() / ".rubicon" / "permits")))
 _PUBLIC_KEY_PATH = _ROOT / "keys" / "rubicon-verifier.pub.pem"
-_PRIVATE_KEY_PATH = Path(os.environ.get("RUBICON_SIGNING_KEY_PATH", ""))
+_priv_env = os.environ.get("RUBICON_SIGNING_KEY_PATH")
+if _priv_env:
+    _PRIVATE_KEY_PATH = Path(_priv_env)
+else:
+    _default_priv = Path.home() / ".rubicon" / "rubicon-signer.key"
+    _PRIVATE_KEY_PATH = _default_priv
+
 _RECEIPTS_DIR = _ROOT / "proof" / "receipts"
 _DECISIONS_LOG = _ROOT / "data" / "decisions.jsonl"
 
@@ -46,7 +52,7 @@ _DECISIONS_LOG = _ROOT / "data" / "decisions.jsonl"
 
 def cmd_approve(args: argparse.Namespace) -> int:
     """Issue a signed permit for a pending or new action."""
-    if not _PRIVATE_KEY_PATH.exists():
+    if not _PRIVATE_KEY_PATH or not _PRIVATE_KEY_PATH.is_file():
         print(f"ERROR: Signing key not found at {_PRIVATE_KEY_PATH}")
         print("Set RUBICON_SIGNING_KEY_PATH to the private key location outside the workspace.")
         print("Generate a keypair: python3 cli/rubicon.py keygen")
@@ -71,10 +77,48 @@ def cmd_approve(args: argparse.Namespace) -> int:
         pending = engine.list_pending()
         matching = [p for p in pending if p.action_id == args.action_id]
         if not matching:
-            print(f"No pending permit found for action_id={args.action_id}")
-            print("Create one first: python3 cli/rubicon.py status")
-            return 1
-        permit_id = matching[0].permit_id
+            # Reconstruct from decisions ledger if available
+            ledger_path = _ROOT / "data" / "decisions.jsonl"
+            found_entry = None
+            if ledger_path.exists():
+                for line in reversed(ledger_path.read_text(encoding="utf-8").splitlines()):
+                    try:
+                        e = json.loads(line)
+                        if e.get("action_id") == args.action_id:
+                            found_entry = e
+                            break
+                    except Exception:
+                        pass
+            if found_entry:
+                head = "UNKNOWN"
+                try:
+                    import subprocess
+                    head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=_ROOT).stdout.strip() or "UNKNOWN"
+                except Exception:
+                    pass
+                from core.models import EffectVector
+                vec = EffectVector(
+                    action_id=found_entry["action_id"],
+                    session_id=found_entry.get("session_id", "default"),
+                    tool=found_entry.get("tool", "execute_command"),
+                    normalized_action=found_entry.get("normalized_action", "git push origin main"),
+                    domains=found_entry.get("domains", []),
+                    paths=[],
+                    network_targets=[],
+                    process_lifetime="none",
+                    rollback_contract="OUTSIDE",
+                    observability={},
+                    reason="Approved via CLI",
+                    decision="BLOCK",
+                )
+                new_p = engine.create_pending(vec, head)
+                permit_id = new_p.permit_id
+            else:
+                print(f"No pending permit found for action_id={args.action_id}")
+                print("Create one first: python3 cli/rubicon.py status")
+                return 1
+        else:
+            permit_id = matching[0].permit_id
     else:
         # List pending
         pending = engine.list_pending()

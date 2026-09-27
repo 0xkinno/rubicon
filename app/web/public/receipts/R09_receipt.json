@@ -4,9 +4,9 @@
   "action_id": "sha256:2345cc84a3d4e911be62dafb8c01126b1006e1706ee325e2a7bca14226d2b93d",
   "policy_version": "1.0.0",
   "verifier_version": "1.0.0",
-  "pre_manifest_sha256": "94ffc848af538c7e2ae8c36fb55849d31cd0dc9443d460bb43957a9c72efb644",
-  "post_action_manifest_sha256": "2013465add9a792be28c555ab8650df4f88596d0b3c8a1f8f7f53f24b8ceb3ff",
-  "post_rollback_manifest_sha256": "645d747bdb4d9184fcbb63a62389bfd26ed523d88d9a6083ea8539b6f925936b",
+  "pre_manifest_sha256": "b95fefcb7e225deab989c6f1df718587359ea1642b32ab9dc1d9d2d3efee5149",
+  "post_action_manifest_sha256": "d3f2a80821b19bf49c2cca149aeeefac045d7f24341924afde58b7f84e624188",
+  "post_rollback_manifest_sha256": "200e134fee08b4d502acc86341af9d81367362b0d72091702c47f63eba08ffb4",
   "domain_results": [
     {
       "domain": "DATABASE_STATE",
@@ -22,14 +22,14 @@
     "DATABASE_STATE": "RESTORED"
   },
   "limitations": [],
-  "signature": "b5a697780b0512c69e986a7d0911ba8fd64aeb082dbd2e0c68ed2e20edef7df4622bcf03cbea00e4d64a361ed50c20fd409f2eec8cef8345c12ba4848c4c2500",
+  "signature": "6476976691a21f971ad099ce1cb9eabcc5b34bb1c27c7c269576d1bf700c138f1ed6a21ecf2aa5f4b14fa98c0cf85826facbdc071db4d4cb6fc75d560fb18306",
   "execution_mode": "ARM_C_PERMITTED",
   "action_executed": "sqlite3 db/state.sqlite 'INSERT INTO records VALUES (1, 2);'",
   "rollback_invoked": true,
-  "baseline_state": "94ffc848af538c7e2ae8c36fb55849d31cd0dc9443d460bb43957a9c72efb644",
-  "post_action_state": "2013465add9a792be28c555ab8650df4f88596d0b3c8a1f8f7f53f24b8ceb3ff",
-  "post_rollback_state": "645d747bdb4d9184fcbb63a62389bfd26ed523d88d9a6083ea8539b6f925936b",
+  "baseline_state": "b95fefcb7e225deab989c6f1df718587359ea1642b32ab9dc1d9d2d3efee5149",
+  "post_action_state": "d3f2a80821b19bf49c2cca149aeeefac045d7f24341924afde58b7f84e624188",
+  "post_rollback_state": "200e134fee08b4d502acc86341af9d81367362b0d72091702c47f63eba08ffb4",
   "domain_verdict": "RESTORED",
   "evidence_source": "INDEPENDENT_ADAPTERS",
-  "receipt_signature": "b5a697780b0512c69e986a7d0911ba8fd64aeb082dbd2e0c68ed2e20edef7df4622bcf03cbea00e4d64a361ed50c20fd409f2eec8cef8345c12ba4848c4c2500"
+  "receipt_signature": "6476976691a21f971ad099ce1cb9eabcc5b34bb1c27c7c269576d1bf700c138f1ed6a21ecf2aa5f4b14fa98c0cf85826facbdc071db4d4cb6fc75d560fb18306"
 }

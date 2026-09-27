@@ -37,7 +37,12 @@ _WORKSPACE_ROOT = Path(os.environ.get("RUBICON_WORKSPACE_ROOT", str(_ROOT)))
 _PERMIT_STORE = Path(os.environ.get("RUBICON_PERMIT_STORE",
                                     str(Path.home() / ".rubicon" / "permits")))
 _PUBLIC_KEY_PATH = _ROOT / "keys" / "rubicon-verifier.pub.pem"
-_PRIVATE_KEY_PATH = Path(os.environ.get("RUBICON_SIGNING_KEY_PATH", ""))
+_priv_env = os.environ.get("RUBICON_SIGNING_KEY_PATH")
+if _priv_env:
+    _PRIVATE_KEY_PATH = Path(_priv_env)
+else:
+    _default_priv = Path.home() / ".rubicon" / "rubicon-signer.key"
+    _PRIVATE_KEY_PATH = _default_priv if _default_priv.is_file() else None
 
 # Session ID from Bob env or fallback
 _SESSION_ID = os.environ.get("BOB_SESSION_ID", os.environ.get("RUBICON_SESSION_ID", "unknown"))
@@ -53,6 +58,41 @@ def _log_decision(entry: dict) -> None:
     _LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(_LEDGER_PATH, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
+
+
+def _send_telemetry(entry: dict) -> None:
+    """Send redacted event metadata to deployed Rubicon dashboard (observer telemetry only)."""
+    api_url = os.environ.get("RUBICON_API_URL") or os.environ.get("NEXT_PUBLIC_RUBICON_API_URL")
+    if not api_url:
+        return
+
+    # Strict metadata-only payload: NO commands, secrets, file contents, env vars
+    payload = {
+        "timestamp": entry.get("ts"),
+        "session_id": entry.get("session_id"),
+        "tool": entry.get("tool"),
+        "action_id": entry.get("action_id"),
+        "classification": entry.get("classification"),
+        "domains": entry.get("domains", []),
+        "decision": entry.get("decision"),
+        "permit_id_present": bool(entry.get("permit_id")),
+    }
+
+    token = os.environ.get("RUBICON_TELEMETRY_TOKEN", "")
+    url = f"{api_url.rstrip('/')}/api/telemetry/decision"
+
+    try:
+        import urllib.request
+        data = json.dumps(payload).encode("utf-8")
+        headers = {"Content-Type": "application/json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=1.2):
+            pass
+    except Exception:
+        # Telemetry is strictly observer-only and must NEVER disrupt or delay Bob
+        pass
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -131,7 +171,7 @@ def main() -> int:
                 engine = PermitEngine(
                     permit_store_dir=_PERMIT_STORE,
                     public_key_path=_PUBLIC_KEY_PATH,
-                    private_key_path=_PRIVATE_KEY_PATH if _PRIVATE_KEY_PATH.exists() else None,
+                    private_key_path=_PRIVATE_KEY_PATH if (_PRIVATE_KEY_PATH and _PRIVATE_KEY_PATH.is_file()) else None,
                 )
                 valid, reason = engine.validate_and_consume(
                     permit_id=permit_id,
@@ -176,7 +216,7 @@ def main() -> int:
                 engine = PermitEngine(
                     permit_store_dir=_PERMIT_STORE,
                     public_key_path=_PUBLIC_KEY_PATH,
-                    private_key_path=_PRIVATE_KEY_PATH if _PRIVATE_KEY_PATH.exists() else None,
+                    private_key_path=_PRIVATE_KEY_PATH if (_PRIVATE_KEY_PATH and _PRIVATE_KEY_PATH.is_file()) else None,
                 )
                 valid, reason = engine.validate_and_consume(
                     permit_id=permit_id,
@@ -208,19 +248,40 @@ def main() -> int:
                 f"  python3 cli/rubicon.py approve --action-id {vector.action_id} --session {_SESSION_ID}"
             )
 
-    # ── Log decision ─────────────────────────────────────────────────────────
+    # ── Auto-register pending permit if blocked ──────────────────────────────
+    if exit_code != 0 and _PUBLIC_KEY_PATH.exists():
+        try:
+            import subprocess
+            head = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True, text=True, cwd=_WORKSPACE_ROOT,
+            ).stdout.strip() or "UNKNOWN"
+            engine = PermitEngine(
+                permit_store_dir=_PERMIT_STORE,
+                public_key_path=_PUBLIC_KEY_PATH,
+            )
+            existing = [p for p in engine.list_pending() if p.action_id == vector.action_id]
+            if not existing:
+                engine.create_pending(vector, head)
+        except Exception:
+            pass
+
+    # ── Log decision & send observer telemetry ────────────────────────────────
     import time
-    _log_decision({
+    log_entry = {
         "ts": time.time(),
         "session_id": _SESSION_ID,
         "tool": tool_name,
         "action_id": vector.action_id,
+        "normalized_action": vector.normalized_action,
         "classification": result.value,
         "domains": vector.domains,
         "decision": "ALLOW" if exit_code == 0 else "BLOCK",
         "reason": block_reason or vector.reason,
         "permit_id": permit_id,
-    })
+    }
+    _log_decision(log_entry)
+    _send_telemetry(log_entry)
 
     # ── Emit block reason to stderr (visible in Bob IDE) ─────────────────────
     if exit_code != 0:

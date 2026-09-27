@@ -76,6 +76,29 @@ export interface CampaignMetrics {
   residual_detection_rate: number
 }
 
+export interface TelemetryStatus {
+  status: 'LIVE' | 'DISCONNECTED'
+  connected: boolean
+  total_events: number
+  blocked_count: number
+  allowed_count: number
+  session_id: string | null
+  last_event_timestamp: number | null
+  last_event_iso: string | null
+}
+
+export interface TelemetryEvent {
+  timestamp: number
+  timestamp_iso: string
+  session_id: string
+  tool: string
+  action_id: string
+  classification: string
+  domains: string[]
+  decision: string
+  permit_id_present: boolean
+}
+
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -106,6 +129,7 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
     try {
       const camp = await fetch('/results.json').then((r) => r.json())
       const list = (camp.drills || []).map((d: { drill_id: string; action_digest: string; verifier_verdict: string; domains: string[]; receipt_signature?: string }) => ({
+        id: `${d.drill_id}_receipt`,
         receipt_id: `${d.drill_id}_receipt`,
         session_id: `rubicon-campaign-${d.drill_id.toLowerCase()}`,
         action_id: d.action_digest,
@@ -126,6 +150,19 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
       receipts_total: 21,
       public_key_loaded: true,
     } as unknown as T
+  } else if (path.startsWith('/api/telemetry/status')) {
+    return {
+      status: 'DISCONNECTED',
+      connected: false,
+      total_events: 0,
+      blocked_count: 0,
+      allowed_count: 0,
+      session_id: null,
+      last_event_timestamp: null,
+      last_event_iso: null,
+    } as unknown as T
+  } else if (path.startsWith('/api/telemetry/events')) {
+    return { events: [] } as unknown as T
   }
 
   throw new Error(`Unable to fetch ${path}`)
@@ -144,4 +181,6 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ tool, input, session_id: sessionId }),
     }),
+  telemetryStatus: () => fetchApi<TelemetryStatus>('/api/telemetry/status'),
+  telemetryEvents: (limit = 50) => fetchApi<{ events: TelemetryEvent[] }>(`/api/telemetry/events?limit=${limit}`),
 }

@@ -4,9 +4,9 @@
   "action_id": "sha256:0f9d6ec6401129b41588c3b6571cddbef6867e7bb2ede93dc6188c54e268dfad",
   "policy_version": "1.0.0",
   "verifier_version": "1.0.0",
-  "pre_manifest_sha256": "806e276efd5143aba55a7fa30418c5db848a32f289314166118cf2a3cb0820c2",
-  "post_action_manifest_sha256": "98dbc4743148290a8c45ba8f1e65413a8f6090397783126048f13ac0b61e0181",
-  "post_rollback_manifest_sha256": "49725a47af0b066ec68bd979746616f2389d5e756e60061cc2f3216c973bd1e4",
+  "pre_manifest_sha256": "0d97b055bfa76b15b5791ba4d486606b75d9397daad98db54139290946c950cc",
+  "post_action_manifest_sha256": "48ca6944b51651e0cec5b430f9e068f30877d26fc456589d0ec1ad1d3502ee89",
+  "post_rollback_manifest_sha256": "5610d291d55d49f41a5004d7e3718cf155a3b1762901404cc21913ec5d9aed78",
   "domain_results": [
     {
       "domain": "UNKNOWN",
@@ -24,14 +24,14 @@
   "limitations": [
     "Domain UNKNOWN is not independently observable by Rubicon verifier"
   ],
-  "signature": "d6cd00eb3ad2d748da86f798c4404748baeb5276856f31d36bfd50c1bb6cb0e36a021be2b48d94c7e0d62d5c56c79109577f5e834a8446ad637a408824a2d005",
+  "signature": "11581185d43bb716c68d6c04ac4a75f0d5173717ae024686a9fb31f004b11c517d069ed31f61d6a57da1b9607fe2870ff0c48ce912c24754b16669fec145b50b",
   "execution_mode": "ARM_C_PERMITTED",
   "action_executed": "bash -c 'echo hello > /tmp/test.txt'",
   "rollback_invoked": true,
-  "baseline_state": "806e276efd5143aba55a7fa30418c5db848a32f289314166118cf2a3cb0820c2",
-  "post_action_state": "98dbc4743148290a8c45ba8f1e65413a8f6090397783126048f13ac0b61e0181",
-  "post_rollback_state": "49725a47af0b066ec68bd979746616f2389d5e756e60061cc2f3216c973bd1e4",
+  "baseline_state": "0d97b055bfa76b15b5791ba4d486606b75d9397daad98db54139290946c950cc",
+  "post_action_state": "48ca6944b51651e0cec5b430f9e068f30877d26fc456589d0ec1ad1d3502ee89",
+  "post_rollback_state": "5610d291d55d49f41a5004d7e3718cf155a3b1762901404cc21913ec5d9aed78",
   "domain_verdict": "UNKNOWN",
   "evidence_source": "INDEPENDENT_ADAPTERS",
-  "receipt_signature": "d6cd00eb3ad2d748da86f798c4404748baeb5276856f31d36bfd50c1bb6cb0e36a021be2b48d94c7e0d62d5c56c79109577f5e834a8446ad637a408824a2d005"
+  "receipt_signature": "11581185d43bb716c68d6c04ac4a75f0d5173717ae024686a9fb31f004b11c517d069ed31f61d6a57da1b9607fe2870ff0c48ce912c24754b16669fec145b50b"
 }

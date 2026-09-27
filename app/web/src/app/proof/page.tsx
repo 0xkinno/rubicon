@@ -224,12 +224,26 @@ function ProofPageInner() {
             <span className="live-dot" />
             <span>Judge Verification Console · 10 Mandatory Questions</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-ink)' }}>
-            Proof of Effect Boundary
-          </h1>
-          <p className="text-sm md:text-base max-w-2xl" style={{ color: 'var(--text-muted)' }}>
-            Independent verification of Bob rollback fidelity across state domains. No AI decides reversibility.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-ink)' }}>
+                Proof of Effect Boundary
+              </h1>
+              <p className="text-sm md:text-base max-w-2xl" style={{ color: 'var(--text-muted)' }}>
+                Independent verification of Bob rollback fidelity across state domains. No AI decides reversibility.
+              </p>
+            </div>
+            <Link
+              href="/demo"
+              className="px-5 py-2.5 rounded-xl font-mono text-xs font-bold text-white transition-all hover:scale-[1.02] shadow-md shrink-0 flex items-center gap-1.5 self-start sm:self-auto"
+              style={{
+                background: 'linear-gradient(135deg, #8B0000 0%, #DC143C 100%)',
+                boxShadow: '0 4px 15px rgba(220, 20, 60, 0.3)',
+              }}
+            >
+              RUN R07 DEMO ➔
+            </Link>
+          </div>
         </div>
 
         {/* 10 Judge questions */}

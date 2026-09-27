@@ -4,9 +4,9 @@
   "action_id": "sha256:ce2b08b40195bded4a3024f94bed19e4697601787d08e049b178b25c169e8ba1",
   "policy_version": "1.0.0",
   "verifier_version": "1.0.0",
-  "pre_manifest_sha256": "902fec083995f049a62a7aa2c3ef721669707e332d42b0c19fb1cb996b3cac5d",
-  "post_action_manifest_sha256": "ed95e9c8bca3608b5b6380b9ca03474eb104a4df175867183c28526fe23a76ec",
-  "post_rollback_manifest_sha256": "37047b971cd73d527d6224a5a8d53b71e75edfd0b3b3a6bd62f1196ade8a9218",
+  "pre_manifest_sha256": "8e30648281b402a51d985ca4debc7bf02ef7a1a40f610910ffc00aea00f3b6e8",
+  "post_action_manifest_sha256": "930aafe49741535529441885792cbd019572cb752918b1970a090c50d02ba3d5",
+  "post_rollback_manifest_sha256": "bc75dde0dad12c012f0e9b15b3b5a79a7e35a34a482c4e69faf909ce1f2e405c",
   "domain_results": [
     {
       "domain": "PACKAGE_REGISTRY",
@@ -31,14 +31,14 @@
     "EXTERNAL_NETWORK": "RESTORED"
   },
   "limitations": [],
-  "signature": "096dcf5671513a49570074392d0760a4149e246147367816c12e32b53716df46d7c7a612b8eabad01ba8e245a159661a26cbdc661496cc9a853873cd71db090f",
+  "signature": "6d65ac491c169f0a526d1330e165f2ceaaee63ded00f4ee6748213c1617ab3496930ec54cbb60ccb1b78067fcf72e38debadf8f11e36aed87626782d41fc5a0f",
   "execution_mode": "ARM_C_PERMITTED",
   "action_executed": "npm publish",
   "rollback_invoked": true,
-  "baseline_state": "902fec083995f049a62a7aa2c3ef721669707e332d42b0c19fb1cb996b3cac5d",
-  "post_action_state": "ed95e9c8bca3608b5b6380b9ca03474eb104a4df175867183c28526fe23a76ec",
-  "post_rollback_state": "37047b971cd73d527d6224a5a8d53b71e75edfd0b3b3a6bd62f1196ade8a9218",
+  "baseline_state": "8e30648281b402a51d985ca4debc7bf02ef7a1a40f610910ffc00aea00f3b6e8",
+  "post_action_state": "930aafe49741535529441885792cbd019572cb752918b1970a090c50d02ba3d5",
+  "post_rollback_state": "bc75dde0dad12c012f0e9b15b3b5a79a7e35a34a482c4e69faf909ce1f2e405c",
   "domain_verdict": "RESTORED",
   "evidence_source": "INDEPENDENT_ADAPTERS",
-  "receipt_signature": "096dcf5671513a49570074392d0760a4149e246147367816c12e32b53716df46d7c7a612b8eabad01ba8e245a159661a26cbdc661496cc9a853873cd71db090f"
+  "receipt_signature": "6d65ac491c169f0a526d1330e165f2ceaaee63ded00f4ee6748213c1617ab3496930ec54cbb60ccb1b78067fcf72e38debadf8f11e36aed87626782d41fc5a0f"
 }

@@ -34,11 +34,13 @@ VIEWPORTS = [
 
 PAGES = [
     {"slug": "landing", "path": "/"},
+    {"slug": "demo", "path": "/demo"},
     {"slug": "dashboard", "path": "/dashboard"},
     {"slug": "proof", "path": "/proof"},
 ]
 
-BASE_URL = "http://localhost:3000"
+import os
+BASE_URL = os.environ.get("PLAYWRIGHT_BASE_URL", "https://rubicon-platform.vercel.app")
 CHROMIUM_EXECUTABLE = r"C:\Users\hp\AppData\Local\ms-playwright\chromium-1234\chrome-win64\chrome.exe"
 
 

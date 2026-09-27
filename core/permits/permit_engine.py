@@ -230,10 +230,14 @@ class PermitEngine:
         ):
             permit.state = PermitState.INVALID
             self._save(permit)
-            return False, (
-                "Permit binding mismatch — action, session, tool, action hash, "
-                "repository, or HEAD does not match issued permit"
-            )
+            mismatches = []
+            if permit.action_id != action_id: mismatches.append(f"action_id ({permit.action_id} != {action_id})")
+            if permit.session_id != session_id: mismatches.append(f"session_id ({permit.session_id} != {session_id})")
+            if permit.tool != tool: mismatches.append(f"tool ({permit.tool} != {tool})")
+            if permit.normalized_action_hash != norm_hash: mismatches.append(f"norm_hash ({permit.normalized_action_hash} != {norm_hash})")
+            if permit.repository_identity != repo_identity: mismatches.append(f"repo_identity ({permit.repository_identity} != {repo_identity})")
+            if permit.head_commit != head_commit: mismatches.append(f"head_commit ({permit.head_commit} != {head_commit})")
+            return False, f"Permit binding mismatch: {', '.join(mismatches)}"
 
         # Consume (one-use)
         permit.state = PermitState.CONSUMED

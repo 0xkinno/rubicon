@@ -349,8 +349,21 @@ def _execute_mock_rollback(drill_dir: Path, drill: dict):
 
 def run_campaign() -> dict:
     classifier = Classifier()
-    signing_key_path = Path(r"C:\Users\hp\.rubicon\rubicon-signer.key")
-    if not signing_key_path.exists():
+    env_key_path = os.environ.get("RUBICON_SIGNING_KEY_PATH")
+    if env_key_path:
+        signing_key_path = Path(env_key_path)
+    else:
+        default_home_key = Path.home() / ".rubicon" / "rubicon-signer.key"
+        signing_key_path = default_home_key if default_home_key.exists() else None
+
+    # Strict/production check: cannot claim signed receipts if key is absent
+    is_prod = os.environ.get("RUBICON_ENV") == "production" or os.environ.get("STRICT_PROOF") == "1"
+    if not signing_key_path or not signing_key_path.exists():
+        if is_prod:
+            raise RuntimeError(
+                "Production proof generation failed: RUBICON_SIGNING_KEY_PATH is not set or key does not exist. "
+                "Signed receipts cannot be fabricated."
+            )
         signing_key_path = None
 
     temp_base = Path(tempfile.mkdtemp(prefix="rubicon_campaign_"))

@@ -4,17 +4,17 @@
   "action_id": "sha256:35b016f2e3f8df8fcf52cdefd7f5d737f4d9164139693752b6c8a85fc98f5da7",
   "policy_version": "1.0.0",
   "verifier_version": "1.0.0",
-  "pre_manifest_sha256": "32b25e229c944e646be4e1dd979fce290e616848ad772c14b4f71e87c048fa86",
-  "post_action_manifest_sha256": "5ee00c7516aa9754f57f9c57ba184a78e3bcf63602dd28942fd10e9d89cac28c",
-  "post_rollback_manifest_sha256": "40d2dbe52b927b0bfdd5196d7f4bd885773d01ab8881d6a8cb1968f88651f6ad",
+  "pre_manifest_sha256": "5b9477d7df9193d2b4b81efe2f3f3625d52c36f497ddef11cca8a37abcbf6594",
+  "post_action_manifest_sha256": "678d14709caff5a862211d1731bc0933857e74bf556103cf47feb02e248a2dd0",
+  "post_rollback_manifest_sha256": "f0732f2d95ede14d80b9f0cc09eb98c12206f08f99101067b055ed7cd374b9a7",
   "domain_results": [
     {
       "domain": "VCS_REMOTE",
       "result": "REMAINS_CHANGED",
-      "pre_hash": "5716a22883388c99b1d714e65526ea0c6109ca5e7d072af1acace1e3e9598694",
-      "post_action_hash": "83107e9a5c7b09ca9362647ba3a630c68be0bd14bd3a91aaa3100c86af58294b",
-      "post_rollback_hash": "83107e9a5c7b09ca9362647ba3a630c68be0bd14bd3a91aaa3100c86af58294b",
-      "notes": "State changed by action and NOT restored by rollback (pre=5716a2288338, post=83107e9a5c7b)"
+      "pre_hash": "709a8ff0f39a013b501e299f986557f806f9bafa178d5e9f330a03bfaff77fae",
+      "post_action_hash": "3aa4891b527a5c80ca20990b7d474c061da4a7a8e357dee61d3dbac88d31622d",
+      "post_rollback_hash": "3aa4891b527a5c80ca20990b7d474c061da4a7a8e357dee61d3dbac88d31622d",
+      "notes": "State changed by action and NOT restored by rollback (pre=709a8ff0f39a, post=3aa4891b527a)"
     }
   ],
   "decision": "BREACH",
@@ -24,14 +24,14 @@
   "limitations": [
     "Domain VCS_REMOTE was changed by the action and was NOT restored by Bob rollback"
   ],
-  "signature": "e851fa1e5860638e2b980949c38db2437c18305f13da20d544a46536c80ae162de42cb276f959a3fb09225a7b02b07ac6419ad980696348d08a06d770384860d",
+  "signature": "8a791547a4fdb1834896b92af315fbd96b72af56f5573356397092e2b0c7b8b3a123cc86bbdbd6e88c01b23864742d6d1a27683b1dcc9e61fe7dbdb85fd0c60e",
   "execution_mode": "ARM_C_PERMITTED",
   "action_executed": "git push origin main",
   "rollback_invoked": true,
-  "baseline_state": "32b25e229c944e646be4e1dd979fce290e616848ad772c14b4f71e87c048fa86",
-  "post_action_state": "5ee00c7516aa9754f57f9c57ba184a78e3bcf63602dd28942fd10e9d89cac28c",
-  "post_rollback_state": "40d2dbe52b927b0bfdd5196d7f4bd885773d01ab8881d6a8cb1968f88651f6ad",
+  "baseline_state": "5b9477d7df9193d2b4b81efe2f3f3625d52c36f497ddef11cca8a37abcbf6594",
+  "post_action_state": "678d14709caff5a862211d1731bc0933857e74bf556103cf47feb02e248a2dd0",
+  "post_rollback_state": "f0732f2d95ede14d80b9f0cc09eb98c12206f08f99101067b055ed7cd374b9a7",
   "domain_verdict": "BREACH",
   "evidence_source": "INDEPENDENT_ADAPTERS",
-  "receipt_signature": "e851fa1e5860638e2b980949c38db2437c18305f13da20d544a46536c80ae162de42cb276f959a3fb09225a7b02b07ac6419ad980696348d08a06d770384860d"
+  "receipt_signature": "8a791547a4fdb1834896b92af315fbd96b72af56f5573356397092e2b0c7b8b3a123cc86bbdbd6e88c01b23864742d6d1a27683b1dcc9e61fe7dbdb85fd0c60e"
 }

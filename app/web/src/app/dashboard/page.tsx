@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { api, type StatusResponse, type Decision, type ReceiptSummary } from '@/lib/api'
+import { api, type StatusResponse, type Decision, type ReceiptSummary, type TelemetryStatus } from '@/lib/api'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 // ── Verdict Badge (Consistent Theme Palette) ───────────────────────────────
@@ -134,30 +134,53 @@ function ReceiptRow({ r }: { r: ReceiptSummary }) {
 
 export default function DashboardPage() {
   const [status, setStatus] = useState<StatusResponse | null>(null)
+  const [telemetry, setTelemetry] = useState<TelemetryStatus | null>(null)
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [receipts, setReceipts] = useState<ReceiptSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Immediate pre-seed from bundled results.json to ensure 21 receipts always display instantly
+    fetch('/results.json')
+      .then((r) => r.json())
+      .then((camp) => {
+        if (camp?.drills) {
+          const list = camp.drills.map((dr: { drill_id: string; action_digest: string; verifier_verdict: string; domains: string[]; receipt_signature?: string }) => ({
+            id: `${dr.drill_id}_receipt`,
+            session_id: `rubicon-campaign-${dr.drill_id.toLowerCase()}`,
+            action_id: dr.action_digest,
+            decision: dr.verifier_verdict,
+            domain_results: (dr.domains || []).map((dm: string) => ({ domain: dm, result: dr.verifier_verdict })),
+            signature_present: Boolean(dr.receipt_signature),
+          }))
+          setReceipts(list)
+        }
+      })
+      .catch(() => {})
+
     const load = async () => {
       try {
-        const [s, d, r] = await Promise.all([
+        const [s, d, r, t] = await Promise.allSettled([
           api.status(),
           api.decisions(20),
           api.receipts(),
+          api.telemetryStatus(),
         ])
-        setStatus(s)
-        setDecisions(d.decisions)
-        setReceipts(r.receipts)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'API server offline: start with uvicorn app.api.main:app')
+        if (s.status === 'fulfilled') setStatus(s.value)
+        if (d.status === 'fulfilled') setDecisions(d.value.decisions || [])
+        if (r.status === 'fulfilled' && r.value.receipts?.length) {
+          setReceipts(r.value.receipts)
+        }
+        if (t.status === 'fulfilled') setTelemetry(t.value)
+      } catch {
+        // keep pre-seeded receipts intact
       } finally {
         setLoading(false)
       }
     }
     load()
-    const interval = setInterval(load, 5000)
+    const interval = setInterval(load, 4000)
     return () => clearInterval(interval)
   }, [])
 
@@ -184,78 +207,132 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <ThemeToggle />
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono"
-            style={{ borderColor: 'var(--border-line)', color: status ? '#10b981' : '#f59e0b' }}
-            title={status ? 'Live API Connected: https://rubicon-api-ecf2.onrender.com' : 'Connecting to API'}
+          <Link
+            href="/demo"
+            className="hidden sm:inline-block px-3 py-1.5 rounded-lg text-xs font-mono font-semibold text-white shadow-md transition-all hover:scale-[1.02]"
+            style={{
+              background: 'linear-gradient(135deg, #8B0000 0%, #DC143C 100%)',
+            }}
           >
-            <span className={`w-2 h-2 rounded-full ${status ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-            <span className="hidden sm:inline">{status ? 'Render Live' : 'Connecting'}</span>
-          </div>
+            RUN R07 DEMO ➔
+          </Link>
         </div>
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        {/* Workspace Heading (OpenStock Pattern) */}
-        <div className="mb-8">
-          <div className="workspace-kicker mb-3">
-            <span className="live-dot" />
-            <span>PreToolUse Gateway · 12 State Domains Active</span>
+        {/* Workspace Heading */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="workspace-kicker mb-3">
+              <span className="live-dot" />
+              <span>PreToolUse Gateway · 12 State Domains Active</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-ink)' }}>
+              Reversibility &amp; Boundary Desk
+            </h1>
+            <p className="text-sm md:text-base max-w-2xl" style={{ color: 'var(--text-muted)' }}>
+              Real-time action interception, fail-closed permit gating, and independent post-rollback state reconciliation.
+            </p>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-ink)' }}>
-            Reversibility &amp; Boundary Desk
-          </h1>
-          <p className="text-sm md:text-base max-w-2xl" style={{ color: 'var(--text-muted)' }}>
-            Real-time action interception, fail-closed permit gating, and independent post-rollback state reconciliation.
-          </p>
+          <Link
+            href="/demo"
+            className="px-5 py-3 rounded-xl font-mono text-xs font-bold text-white transition-all hover:scale-[1.02] shadow-lg shrink-0 self-start md:self-auto flex items-center gap-2"
+            style={{
+              background: 'linear-gradient(135deg, #8B0000 0%, #DC143C 100%)',
+              boxShadow: '0 4px 15px rgba(220, 20, 60, 0.35)',
+            }}
+          >
+            RUN R07 DEMO ➔
+          </Link>
         </div>
 
-        {/* Recorded Benchmark Evidence (Always Displayed Immediately) */}
-        <div className="mb-4 flex items-center justify-between">
-          <div className="text-xs font-mono uppercase tracking-widest font-semibold" style={{ color: 'var(--text-muted)' }}>
-            Recorded Benchmark Evidence · 21-Drill Causal Campaign
-          </div>
-          <span className="text-xs font-mono text-emerald-500 font-semibold">100% Cryptographically Verified</span>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-8"
-        >
-          <MetricCard value="21" label="Drills Evaluated" sub="Across 12 Domains" />
-          <MetricCard value="3" label="Ablation Arms" sub="Raw vs Gate vs Verified" />
-          <MetricCard value="12" label="State Domains" sub="Complete Classification" />
-          <MetricCard value="21/21" label="Signed Receipts" sub="100% Ed25519 Verified" />
-          <MetricCard value="14" label="Escapes Blocked" sub="14/14 Caught (100%)" accent />
-          <MetricCard value="0" label="Escapes Allowed" sub="0 Escapes under Rubicon" accent />
-        </motion.div>
-
-        {/* Live Session Telemetry (Optional / Connected) */}
-        <div className="rubicon-card p-4 sm:p-5 mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+        {/* ── PANEL 1: RECORDED PROOF (Permanent Corpus) ────────────────────────── */}
+        <div className="mb-10">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${status ? 'bg-emerald-500 animate-pulse shadow-emerald-500/50 shadow-md' : 'bg-amber-500'}`} />
-              <span className="text-xs font-mono uppercase tracking-widest font-semibold" style={{ color: 'var(--text-ink)' }}>
-                Live Session Telemetry (Optional / Connected)
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
+              <span className="text-xs font-mono uppercase tracking-widest font-bold text-emerald-500">
+                RECORDED PROOF · PERMANENT BENCHMARK CORPUS
               </span>
             </div>
-            <a
-              href="https://rubicon-api-ecf2.onrender.com/api/status"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-mono text-emerald-500 hover:underline"
-            >
-              https://rubicon-api-ecf2.onrender.com ↗
-            </a>
+            <span className="text-xs font-mono text-emerald-500 font-semibold">
+              21 Drills · 21 Signed Receipts · 12 Domains · 100% Verified
+            </span>
           </div>
-          <p className="text-xs font-mono leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            {status
-              ? `Connected to live backend. Total intercept decisions: ${status.decisions_total} (${status.blocked} blocked, ${status.allowed} allowed). Live agent telemetry updates automatically.`
-              : 'Connecting to live API. Benchmark proof above is permanently recorded and independently verifiable without running Bob.'}
-          </p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-3"
+          >
+            <MetricCard value="21" label="Drills Evaluated" sub="Across 12 Domains" />
+            <MetricCard value="3" label="Ablation Arms" sub="Raw vs Gate vs Verified" />
+            <MetricCard value="12" label="State Domains" sub="Complete Classification" />
+            <MetricCard value="21/21" label="Signed Receipts" sub="100% Ed25519 Verified" />
+            <MetricCard value="14" label="Escapes Blocked" sub="14/14 Caught (100%)" accent />
+            <MetricCard value="0" label="Escapes Allowed" sub="0 Escapes under Rubicon" accent />
+          </motion.div>
+          <div className="text-[11px] font-mono opacity-60" style={{ color: 'var(--text-muted)' }}>
+            ✓ Permanent proof corpus is stored on disk and verifiable without running Bob.
+          </div>
+        </div>
+
+        {/* ── PANEL 2: LIVE SESSION TELEMETRY ───────────────────────────────────── */}
+        <div className="rubicon-card p-5 mb-10 border" style={{ borderColor: 'var(--border-line)' }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b" style={{ borderColor: 'var(--border-line)' }}>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono uppercase tracking-widest font-bold" style={{ color: 'var(--text-ink)' }}>
+                LIVE BOB SESSION
+              </span>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider border flex items-center gap-1.5 ${
+                  telemetry?.status === 'LIVE'
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                    : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${telemetry?.status === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                {telemetry?.status === 'LIVE' ? 'BOB SESSION LIVE' : 'BOB SESSION DISCONNECTED'}
+              </span>
+            </div>
+            <div className="text-xs font-mono opacity-70" style={{ color: 'var(--text-muted)' }}>
+              Observer Telemetry Only · Render Does Not Run Bob
+            </div>
+          </div>
+
+          {telemetry?.status === 'LIVE' ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs">
+              <div className="p-3 rounded-lg border bg-white/[0.02]" style={{ borderColor: 'var(--border-line)' }}>
+                <div className="opacity-60 text-[10px] uppercase mb-1">Live Events</div>
+                <div className="text-lg font-bold text-emerald-400">{telemetry.total_events}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-white/[0.02]" style={{ borderColor: 'var(--border-line)' }}>
+                <div className="opacity-60 text-[10px] uppercase mb-1">Actions Blocked</div>
+                <div className="text-lg font-bold text-rose-400">{telemetry.blocked_count}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-white/[0.02]" style={{ borderColor: 'var(--border-line)' }}>
+                <div className="opacity-60 text-[10px] uppercase mb-1">Actions Allowed</div>
+                <div className="text-lg font-bold text-emerald-400">{telemetry.allowed_count}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-white/[0.02]" style={{ borderColor: 'var(--border-line)' }}>
+                <div className="opacity-60 text-[10px] uppercase mb-1">Active Session</div>
+                <div className="truncate text-xs" title={telemetry.session_id || ''}>{telemetry.session_id || 'unknown'}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl border bg-black/10 dark:bg-black/30 text-xs font-mono" style={{ borderColor: 'var(--border-line)' }}>
+              <div className="font-semibold text-amber-400 mb-1">
+                0 live events · Bob not currently streaming
+              </div>
+              <p className="opacity-75 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                To connect a live session, run IBM Bob on builder machine with the PreToolUse hook configured:
+                <code className="mx-1 px-1.5 py-0.5 rounded bg-white/10 text-red-400">python scripts/hooks/pretooluse.py</code>.
+                When actions are proposed, redacted metadata will appear here in real time.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* The Rubicon Line Visualizer */}
@@ -291,8 +368,15 @@ export default function DashboardPage() {
               </span>
             </div>
             {decisions.length === 0 ? (
-              <div className="text-xs font-mono py-12 text-center opacity-50" style={{ color: 'var(--text-muted)' }}>
-                No decisions yet. Start Bob with the PreToolUse hook configured.
+              <div className="text-xs font-mono py-12 text-center opacity-70 flex flex-col items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                <span>No live agent decisions streaming currently.</span>
+                <span className="text-[11px] opacity-80">Start IBM Bob locally with PreToolUse hook or inspect recorded drills:</span>
+                <Link
+                  href="/demo"
+                  className="mt-1 px-3 py-1 rounded border text-red-400 border-red-500/30 hover:bg-red-500/10 transition-all font-semibold"
+                >
+                  RUN R07 DEMO REPLAY ➔
+                </Link>
               </div>
             ) : (
               <div className="overflow-y-auto max-h-[380px] space-y-1 pr-1">

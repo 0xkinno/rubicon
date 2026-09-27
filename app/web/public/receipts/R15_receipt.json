@@ -4,9 +4,9 @@
   "action_id": "sha256:f2bc380289648edae6909a9b663e9997c1009fdd98612a8aaa60f631ae75739f",
   "policy_version": "1.0.0",
   "verifier_version": "1.0.0",
-  "pre_manifest_sha256": "100f786c8cef62db12243427cfdc3c4ffbd669b31cd3c02d16e400a8ab277a5a",
-  "post_action_manifest_sha256": "fbe3c55648881f01bd06a1a17f2a7e148be730d6fff76e4a89d60aa55568d5b9",
-  "post_rollback_manifest_sha256": "6ffb87449ddca190a744702138ce98ead3e65cbd30efb5f153f797692fce7752",
+  "pre_manifest_sha256": "1c13170b0e49d1e1cab9110cf2b694853d1fa43c5505bfe31dc7e6d304343a5a",
+  "post_action_manifest_sha256": "667b58381b2fa48e4e789b92daedabaa513e3c520a14da9aa98eda3853097ddc",
+  "post_rollback_manifest_sha256": "59f842f9b597cedce08b128f1e8aca27708907d1ad73575eb41da0e30f064846",
   "domain_results": [
     {
       "domain": "WORKSPACE_TRACKED",
@@ -22,14 +22,14 @@
     "WORKSPACE_TRACKED": "RESTORED"
   },
   "limitations": [],
-  "signature": "7ccacdc19a9d46837b6102f5cab02d9f89d6f13f55ce0b314d5d19426dfa2c3f81c48098da1f073a568ee44ee59775ea7174ccd4ab50be59f510ef95ae186203",
+  "signature": "8da5d7dd2eb8fb1d9f90fcf9af4dd4d7f28f6191e54ddf51a8c0ff3dbc423d7a24f2f09c8dee80d66badff0f3faaf11a22a7ebdadbc0274605043e24da8ce20a",
   "execution_mode": "ARM_C_PERMITTED",
   "action_executed": "curl https://api.example.com/data",
   "rollback_invoked": true,
-  "baseline_state": "100f786c8cef62db12243427cfdc3c4ffbd669b31cd3c02d16e400a8ab277a5a",
-  "post_action_state": "fbe3c55648881f01bd06a1a17f2a7e148be730d6fff76e4a89d60aa55568d5b9",
-  "post_rollback_state": "6ffb87449ddca190a744702138ce98ead3e65cbd30efb5f153f797692fce7752",
+  "baseline_state": "1c13170b0e49d1e1cab9110cf2b694853d1fa43c5505bfe31dc7e6d304343a5a",
+  "post_action_state": "667b58381b2fa48e4e789b92daedabaa513e3c520a14da9aa98eda3853097ddc",
+  "post_rollback_state": "59f842f9b597cedce08b128f1e8aca27708907d1ad73575eb41da0e30f064846",
   "domain_verdict": "RESTORED",
   "evidence_source": "INDEPENDENT_ADAPTERS",
-  "receipt_signature": "7ccacdc19a9d46837b6102f5cab02d9f89d6f13f55ce0b314d5d19426dfa2c3f81c48098da1f073a568ee44ee59775ea7174ccd4ab50be59f510ef95ae186203"
+  "receipt_signature": "8da5d7dd2eb8fb1d9f90fcf9af4dd4d7f28f6191e54ddf51a8c0ff3dbc423d7a24f2f09c8dee80d66badff0f3faaf11a22a7ebdadbc0274605043e24da8ce20a"
 }

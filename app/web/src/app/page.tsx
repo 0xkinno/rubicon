@@ -254,24 +254,29 @@ export default function LandingPage() {
               the boundary. Independently verify every state domain.
             </p>
 
-            <div className="flex flex-wrap gap-4 items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-16">
               <Link
-                href="/proof"
-                className="px-8 py-3.5 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] shadow-xl text-base"
+                href="/demo"
+                className="px-8 py-3.5 rounded-xl font-bold text-white transition-all hover:scale-[1.02] shadow-xl text-base flex items-center gap-2"
                 style={{
                   background: 'linear-gradient(135deg, #8B0000 0%, #DC143C 100%)',
                   boxShadow: '0 8px 25px rgba(220, 20, 60, 0.4)',
                 }}
               >
-                Run the proof ↗
+                RUN THE 60-SECOND PROOF ➔
               </Link>
-              <Link
-                href="/dashboard"
-                className="px-8 py-3.5 rounded-xl font-semibold border transition-all hover:bg-white/10 text-white backdrop-blur-md text-base"
-                style={{ borderColor: 'rgba(255, 255, 255, 0.25)' }}
-              >
-                Open dashboard
-              </Link>
+              <div className="flex flex-col">
+                <Link
+                  href="/dashboard"
+                  className="px-7 py-3.5 rounded-xl font-semibold border transition-all hover:bg-white/10 text-white backdrop-blur-md text-base"
+                  style={{ borderColor: 'rgba(255, 255, 255, 0.25)' }}
+                >
+                  OPEN LIVE OPERATOR DESK
+                </Link>
+                <span className="text-[11px] text-gray-300 font-mono mt-1.5 opacity-80">
+                  Live Bob telemetry appears when IBM Bob is running Rubicon locally.
+                </span>
+              </div>
             </div>
 
             {/* Live Status Pill Strip */}

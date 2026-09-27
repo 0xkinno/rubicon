@@ -4,9 +4,9 @@
   "action_id": "sha256:d5db3a553073d04ca75d25de7884546f15e914fddecf32dc4b72c166b9ac937e",
   "policy_version": "1.0.0",
   "verifier_version": "1.0.0",
-  "pre_manifest_sha256": "f9f94032529b38f0b9634ce6c9902c02aec72c35bea55470f1d0fad8e92bbd3f",
-  "post_action_manifest_sha256": "97645852d51e1056162fb4c1b3de9957a200830e81b62d7cea336571ea63b60e",
-  "post_rollback_manifest_sha256": "4f5d530dcc1ec09bfa159ae8c3a280cee7c8656d793eea03bee2546cf1ae3bcb",
+  "pre_manifest_sha256": "176e4f5df537abee527e1063be4ed6b15bde4a28e4cc52eff52dd86ccea966b0",
+  "post_action_manifest_sha256": "6588309f26607578ea7befd7f85de141a521efee837333de562744b43fd85a7e",
+  "post_rollback_manifest_sha256": "787204188ca177a5ef1f8d70f7aecee90be6cf483c67e3076819125e88a7ba72",
   "domain_results": [
     {
       "domain": "UNKNOWN",
@@ -24,14 +24,14 @@
   "limitations": [
     "Domain UNKNOWN is not independently observable by Rubicon verifier"
   ],
-  "signature": "393219cdc89573a4a7cc44f5eddef11a3fdcb11cb27c81bc39f826ce202573cdb5859a6cd1d61bd9c21c5b7d56a53e9f1e540b064df8e03300fd22a3511bf206",
+  "signature": "334f84dea56b483cc58d716958bf906be283d30ed71b3b316e176cf889c6b28ff152bee4402bbae68a108c06980670db11966be80f6635278e90946dc492520a",
   "execution_mode": "ARM_C_PERMITTED",
   "action_executed": "git commit -am 'update' && git push origin main",
   "rollback_invoked": true,
-  "baseline_state": "f9f94032529b38f0b9634ce6c9902c02aec72c35bea55470f1d0fad8e92bbd3f",
-  "post_action_state": "97645852d51e1056162fb4c1b3de9957a200830e81b62d7cea336571ea63b60e",
-  "post_rollback_state": "4f5d530dcc1ec09bfa159ae8c3a280cee7c8656d793eea03bee2546cf1ae3bcb",
+  "baseline_state": "176e4f5df537abee527e1063be4ed6b15bde4a28e4cc52eff52dd86ccea966b0",
+  "post_action_state": "6588309f26607578ea7befd7f85de141a521efee837333de562744b43fd85a7e",
+  "post_rollback_state": "787204188ca177a5ef1f8d70f7aecee90be6cf483c67e3076819125e88a7ba72",
   "domain_verdict": "UNKNOWN",
   "evidence_source": "INDEPENDENT_ADAPTERS",
-  "receipt_signature": "393219cdc89573a4a7cc44f5eddef11a3fdcb11cb27c81bc39f826ce202573cdb5859a6cd1d61bd9c21c5b7d56a53e9f1e540b064df8e03300fd22a3511bf206"
+  "receipt_signature": "334f84dea56b483cc58d716958bf906be283d30ed71b3b316e176cf889c6b28ff152bee4402bbae68a108c06980670db11966be80f6635278e90946dc492520a"
 }

@@ -147,8 +147,9 @@ _WRITE_TOOLS = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _action_id(tool: str, raw_input: dict, session_id: str) -> str:
+    cleaned = {k: v for k, v in raw_input.items() if not str(k).startswith("_rubicon_")} if isinstance(raw_input, dict) else raw_input
     payload = json.dumps(
-        {"tool": tool, "input": raw_input, "session_id": session_id},
+        {"tool": tool, "input": cleaned, "session_id": session_id},
         sort_keys=True, separators=(",", ":"),
     ).encode()
     return "sha256:" + hashlib.sha256(payload).hexdigest()
