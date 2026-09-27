@@ -199,19 +199,20 @@ function ProofPageInner() {
           borderColor: 'var(--nav-border)',
         }}
       >
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-mono font-bold tracking-widest text-lg" style={{ color: 'var(--text-ink)' }}>
+        <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+          <Link href="/" className="font-mono font-bold tracking-widest text-base sm:text-lg shrink-0" style={{ color: 'var(--text-ink)' }}>
             RUBICON
           </Link>
-          <span className="opacity-30">/</span>
-          <span className="text-xs font-mono px-2 py-0.5 rounded border border-current opacity-70">
-            proof
-          </span>
+          <div className="flex items-center gap-3 sm:gap-5 pl-2 sm:pl-3">
+            <Link href="/dashboard" className="text-xs sm:text-sm font-medium transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
+              dashboard
+            </Link>
+            <span className="text-xs font-mono px-2 py-0.5 rounded border border-current opacity-70">
+              Proof
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-5">
-          <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
-            Dashboard
-          </Link>
+        <div className="flex items-center gap-3 shrink-0">
           <ThemeToggle />
         </div>
       </nav>

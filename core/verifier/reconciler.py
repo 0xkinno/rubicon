@@ -67,6 +67,8 @@ class Reconciler:
         action_id: str,
         session_id: str,
         affected_domains: list[str],
+        execution_mode: str = "ARM_C_PERMITTED",
+        action_executed: str = "",
     ) -> ReversibilityReceipt:
         """
         Run full reconciliation and produce a signed receipt.
@@ -96,6 +98,14 @@ class Reconciler:
             observability=observability,
             limitations=limitations,
             signature="",
+            execution_mode=execution_mode,
+            action_executed=action_executed,
+            rollback_invoked=True,
+            baseline_state=pre.sha256(),
+            post_action_state=post_action.sha256(),
+            post_rollback_state=post_rollback.sha256(),
+            domain_verdict=verdict.value if hasattr(verdict, "value") else str(verdict),
+            evidence_source="INDEPENDENT_ADAPTERS",
         )
 
         if self._priv_key:

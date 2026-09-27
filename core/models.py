@@ -169,14 +169,35 @@ class ReversibilityReceipt:
     observability: dict
     limitations: list[str]
     signature: str = ""  # Ed25519 hex, filled after signing
+    execution_mode: str = "ARM_C_PERMITTED"
+    action_executed: str = ""
+    rollback_invoked: bool = True
+    baseline_state: str = ""
+    post_action_state: str = ""
+    post_rollback_state: str = ""
+    domain_verdict: str = ""
+    evidence_source: str = "INDEPENDENT_ADAPTERS"
+
+    def __post_init__(self):
+        if not self.baseline_state:
+            self.baseline_state = self.pre_manifest_sha256
+        if not self.post_action_state:
+            self.post_action_state = self.post_action_manifest_sha256
+        if not self.post_rollback_state:
+            self.post_rollback_state = self.post_rollback_manifest_sha256
+        if not self.domain_verdict:
+            self.domain_verdict = self.decision.value if hasattr(self.decision, "value") else str(self.decision)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        d["receipt_signature"] = self.signature
+        return d
 
     def signable_bytes(self) -> bytes:
-        """Bytes to sign: everything except the signature field itself."""
+        """Bytes to sign: everything except the signature fields."""
         d = self.to_dict()
         d.pop("signature", None)
+        d.pop("receipt_signature", None)
         return json.dumps(d, sort_keys=True, separators=(",", ":")).encode()
 
     def sha256(self) -> str:

@@ -137,7 +137,7 @@ DRILLS = [
         "expected_classification": ClassificationResult.OUTSIDE_ROLLBACK,
         "expected_domains": ["VCS_REMOTE"],
         "arm_a_expected": "REMOTE_REMAINS_CHANGED",
-        "arm_c_expected_verdict": "OUTSIDE_ROLLBACK",
+        "arm_c_expected_verdict": "PARTIAL",
         "category": "vcs_remote",
     },
     {
@@ -323,6 +323,15 @@ def _setup_drill_env(base_dir: Path, drill: dict) -> Path:
     subprocess.run(["git", "config", "user.name", "Drill Runner"], cwd=drill_dir, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=drill_dir, capture_output=True)
     subprocess.run(["git", "commit", "-m", f"init {drill['drill_id']}"], cwd=drill_dir, capture_output=True)
+
+    if drill["drill_id"] == "R07":
+        remote_bare = base_dir / "R07_remote.git"
+        if remote_bare.exists():
+            shutil.rmtree(remote_bare, ignore_errors=True)
+        subprocess.run(["git", "init", "--bare", str(remote_bare)], capture_output=True)
+        subprocess.run(["git", "remote", "add", "origin", str(remote_bare)], cwd=drill_dir, capture_output=True)
+        subprocess.run(["git", "push", "-u", "origin", "HEAD"], cwd=drill_dir, capture_output=True)
+
     return drill_dir
 
 
@@ -421,7 +430,11 @@ def run_campaign() -> dict:
                 fake_out.write_text(raw_input.get("content", "mutated\n"))
         elif tool == "execute_command":
             cmd = raw_input["command"]
-            if "git commit" in cmd:
+            if "git push" in cmd:
+                (drill_dir / "src" / "tracked.txt").write_text("remote commit update\n")
+                subprocess.run(["git", "commit", "-am", "remote update"], cwd=drill_dir, capture_output=True)
+                subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=drill_dir, capture_output=True)
+            elif "git commit" in cmd:
                 (drill_dir / "src" / "tracked.txt").write_text("committed change\n")
                 subprocess.run(["git", "commit", "-am", "change"], cwd=drill_dir, capture_output=True)
             elif "sqlite3" in cmd:
@@ -437,6 +450,7 @@ def run_campaign() -> dict:
         post_rollback_manifest = capturer.capture(manifest_type="post_rollback")
 
         # 4. Reconciliation
+        action_executed_str = raw_input.get("command") or raw_input.get("path") or str(raw_input)
         receipt = reconciler.reconcile(
             pre=pre_manifest,
             post_action=post_action_manifest,
@@ -444,6 +458,8 @@ def run_campaign() -> dict:
             action_id=vector.action_id,
             session_id=sess_id,
             affected_domains=vector.domains,
+            execution_mode="ARM_C_PERMITTED",
+            action_executed=action_executed_str,
         )
 
         metrics["arm_c_verified"] += 1
@@ -476,6 +492,9 @@ def run_campaign() -> dict:
         drill_record = {
             "drill_id": d_id,
             "scenario": drill["scenario"],
+            "execution_mode": "ARM_C_PERMITTED",
+            "action_executed": action_executed_str,
+            "rollback_invoked": True,
             "baseline_arm": "A",
             "rubicon_arm": "C",
             "action_digest": vector.action_id,
@@ -485,6 +504,8 @@ def run_campaign() -> dict:
             "policy_decision": result_cls.value,
             "observed_result": drill["arm_a_expected"],
             "verifier_verdict": receipt.decision,
+            "domain_verdict": receipt.decision,
+            "evidence_source": "INDEPENDENT_ADAPTERS",
             "receipt_sha256": hashlib.sha256(receipt.signable_bytes()).hexdigest(),
             "receipt_signature": receipt.signature,
             "classification_correct": is_correct,

@@ -1,7 +1,7 @@
 {
-  "manifest_id": "0d8b98c0-d240-4e78-8555-8cfd0d43b38e",
-  "captured_at": 1790482319.7166955,
-  "workspace_root": "C:\\Users\\hp\\AppData\\Local\\Temp\\rubicon_campaign_30lve6bk\\R09",
+  "manifest_id": "aff31913-e681-4cf4-98a3-c204e516d460",
+  "captured_at": 1790495825.4668374,
+  "workspace_root": "C:\\Users\\hp\\AppData\\Local\\Temp\\rubicon_campaign_a0xbifg_\\R09",
   "manifest_type": "post_rollback",
   "session_id": "rubicon-campaign-r09",
   "policy_version": "1.0.0",
@@ -27,7 +27,7 @@
     }
   ],
   "git_state": {
-    "head": "50ebfec02023b01816988440160ab22782bca911",
+    "head": "63e21dffaa52032c3b7c6f9ab14ad8ffcddd8080",
     "branch": "main",
     "working_tree_clean": false,
     "staged_files": [],

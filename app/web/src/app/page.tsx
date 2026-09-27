@@ -154,38 +154,40 @@ export default function LandingPage() {
           borderColor: 'var(--nav-border)',
         }}
       >
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse shadow-red-500/50 shadow-md" />
-              <span className="font-mono font-bold tracking-widest text-lg" style={{ color: 'var(--text-ink)' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse shadow-red-500/50 shadow-md shrink-0" />
+              <span className="font-mono font-bold tracking-widest text-base sm:text-lg" style={{ color: 'var(--text-ink)' }}>
                 RUBICON
               </span>
             </Link>
-            <span className="hidden md:inline text-xs font-mono opacity-50 px-2 py-0.5 rounded border border-current">
+            <span className="hidden md:inline text-xs font-mono opacity-50 px-2 py-0.5 rounded border border-current shrink-0">
               v1.0.0
             </span>
+            <div className="flex items-center gap-3 sm:gap-5 pl-2 sm:pl-3">
+              <Link
+                href="/dashboard"
+                className="text-xs sm:text-sm font-medium transition-colors hover:text-red-500"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                dashboard
+              </Link>
+              <Link
+                href="/proof"
+                className="text-xs sm:text-sm font-medium transition-colors hover:text-red-500"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Proof
+              </Link>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium transition-colors hover:text-red-500"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/proof"
-              className="text-sm font-medium transition-colors hover:text-red-500"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Proof
-            </Link>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <ThemeToggle />
             <Link
               href="/proof"
-              className="px-4 py-1.5 rounded-lg text-xs font-mono font-semibold text-white transition-transform hover:scale-[1.02] shadow-md"
+              className="px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-mono font-semibold text-white transition-transform hover:scale-[1.02] shadow-md whitespace-nowrap shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #8B0000 0%, #DC143C 100%)',
                 boxShadow: '0 4px 15px rgba(220, 20, 60, 0.3)',

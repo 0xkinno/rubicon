@@ -11,6 +11,17 @@
 
 ![RUBICON Hero Banner](evidence/responsive/landing_banner.png)
 
+## Live Links
+
+| Resource | Description | Status / Link |
+|---|---|---|
+| Web Console | Next.js Landing, Dashboard, Proof Console | [rubicon-platform.vercel.app](https://rubicon-platform.vercel.app) |
+| Live Dashboard | Boundary Visualizer & Decision Stream | [rubicon-platform.vercel.app/dashboard](https://rubicon-platform.vercel.app/dashboard) |
+| Proof Suite | Interactive Reversibility Receipt Inspector | [rubicon-platform.vercel.app/proof](https://rubicon-platform.vercel.app/proof) |
+| API Backend | FastAPI Deterministic Engine & Receipt Server | [rubicon-api-ecf2.onrender.com](https://rubicon-api-ecf2.onrender.com) |
+| Campaign Results | Machine-readable 21-drill ablation ledger | [`proof/results.json`](proof/results.json) |
+| Video Walkthrough | Demonstration of boundary enforcement & verification | [Demo Video Link] |
+
 ## Screenshots
 
 | The Rollback Boundary & Assumption | Live Operator Desk |
@@ -19,24 +30,13 @@
 | **Proof of Effect Boundary & Judge Questions** | **12-Domain Rollback Contract Matrix** |
 | ![Proof & Receipts](evidence/responsive/shot_proof.png) | ![Domain Coverage Matrix](evidence/responsive/shot_matrix.png) |
 
-## Live Links
-
-| Resource | Description | Status / Link |
-|---|---|---|
-| Web Console | Next.js Landing, Dashboard, Proof Console | [rubicon-platform.vercel.app](https://rubicon-platform.vercel.app) |
-| Live Dashboard | Boundary Visualizer & Decision Stream | [rubicon-platform.vercel.app/dashboard](https://rubicon-platform.vercel.app/dashboard) |
-| Proof Suite | Interactive Reversibility Receipt Inspector | [rubicon-platform.vercel.app/proof](https://rubicon-platform.vercel.app/proof) |
-| API Backend | FastAPI Deterministic Engine & Receipt Server | Render Cloud / Local ([Deployment Guide](docs/DEPLOYMENT.md)) |
-| Campaign Results | Machine-readable 21-drill ablation ledger | [`proof/results.json`](proof/results.json) |
-| Video Walkthrough | Demonstration of boundary enforcement & verification | [Demo Video Link] |
-
 ## The Problem
 
 When an IBM Bob agent runs in auto-approve mode, it can execute dozens of tool calls without manual review. Bob's rollback recovers the workspace — but only a bounded subset of what the agent actually changed.
 
 **A workspace can look perfectly clean after rollback while a remote Git ref, a database row, an HTTP event, or a detached process still carries the effect.**
 
-No existing tool answers: *"Was the consequence of this action actually undone?"*
+Traditional authorization gates focus on pre-execution: *"Was this command authorized?"* Rubicon establishes the effect governance layer: *"Can this consequence actually be undone, and was every affected state domain independently restored?"*
 
 ## The Solution
 
@@ -197,7 +197,56 @@ If watsonx credentials are absent, a deterministic fallback summary is generated
 
 ## Architecture
 
-See `docs/ARCHITECTURE.md` for the full architecture diagram.
+```mermaid
+flowchart LR
+    B[IBM Bob IDE]
+    H[PreToolUse Hook]
+    C[Deterministic Effect Classifier]
+    P[Permit / Policy Engine]
+    E[Bob Tool Execution]
+    S[Baseline + Post Action Manifest]
+    R[Bob Rollback]
+    V[Independent Verifier]
+    L[Reversibility Ledger]
+    G[Granite Explainer]
+    W[Web Evidence Console]
+
+    B --> H --> C --> P
+    P -->|ALLOW| E
+    P -->|BLOCK / PERMIT| B
+    E --> S
+    S --> R --> V
+    V --> L --> W
+    L --> G --> W
+```
+
+### Effect domain model
+
+```mermaid
+flowchart TB
+    A[Bob Tool Action] --> EV[Effect Vector]
+    EV --> WT[Tracked Workspace]
+    EV --> WI[Ignored / Excluded Workspace]
+    EV --> VL[Local VCS]
+    EV --> VR[Remote VCS]
+    EV --> DB[Database]
+    EV --> PR[Process Runtime]
+    EV --> NW[External Network]
+    EV --> UN[Unknown]
+
+    WT --> RB[Rollback Contract]
+    WI --> GAP[Coverage Gap]
+    VL --> GAP
+    VR --> GAP
+    DB --> GAP
+    PR --> GAP
+    NW --> GAP
+    UN --> GAP
+
+    GAP --> PF[Permit / Deny]
+```
+
+See `docs/ARCHITECTURE.md` for the full architecture.
 
 ## Product Flow
 
@@ -287,10 +336,10 @@ Runs unit tests, campaign, receipt verification, and claim validation from a fre
 
 ## Roadmap
 
-- Verified experimental results from full Phase 0 experiments on real Bob instance
-- CI/agent safety preflight integration
-- Policy pack distribution for enterprise repositories
-- Hosted evidence/analytics layer
+- CI/agent safety preflight integration for pull request workflows
+- Policy pack registry for enterprise multi-repository governance
+- Hardware security token (YubiKey/HSM) permit signing adapter
+- Hosted multi-tenant evidence and compliance reporting console
 
 ## Documentation
 

@@ -1,7 +1,7 @@
 {
-  "manifest_id": "2174a53f-bd39-4677-90cc-195395ad2f8a",
-  "captured_at": 1790482316.4088042,
-  "workspace_root": "C:\\Users\\hp\\AppData\\Local\\Temp\\rubicon_campaign_30lve6bk\\R07",
+  "manifest_id": "7572136b-7cf7-45d4-822a-fb6b0dcd20b7",
+  "captured_at": 1790495820.7785823,
+  "workspace_root": "C:\\Users\\hp\\AppData\\Local\\Temp\\rubicon_campaign_a0xbifg_\\R07",
   "manifest_type": "baseline",
   "session_id": "rubicon-campaign-r07",
   "policy_version": "1.0.0",
@@ -27,7 +27,7 @@
     }
   ],
   "git_state": {
-    "head": "0ada721a7a0e4d1e959021ce56264dec9e7f9361",
+    "head": "f521f2c901744d5c304c0066057371724d00f0ac",
     "branch": "main",
     "working_tree_clean": false,
     "staged_files": [],
@@ -35,7 +35,9 @@
     "untracked_files": [
       "fixtures/"
     ],
-    "remote_refs": {}
+    "remote_refs": {
+      "refs/heads/main": "f521f2c901744d5c304c0066057371724d00f0ac"
+    }
   },
   "env_state_redacted": {
     ".env": {

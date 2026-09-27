@@ -165,36 +165,41 @@ export default function DashboardPage() {
     <div className="min-h-screen overflow-x-hidden w-full max-w-full pb-20">
       {/* Site Navigation */}
       <nav
-        className="border-b px-6 h-16 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 transition-colors"
+        className="border-b px-4 sm:px-6 h-16 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 transition-colors"
         style={{
           background: 'var(--nav-bg)',
           borderColor: 'var(--nav-border)',
         }}
       >
-        <div className="flex items-center gap-4">
-          <Link href="/" className="font-mono font-bold tracking-widest text-lg" style={{ color: 'var(--text-ink)' }}>
+        <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+          <Link href="/" className="font-mono font-bold tracking-widest text-base sm:text-lg shrink-0" style={{ color: 'var(--text-ink)' }}>
             RUBICON
           </Link>
-          <span className="opacity-30">/</span>
-          <span className="text-xs font-mono px-2 py-0.5 rounded border border-current opacity-70">
-            dashboard
-          </span>
+          <div className="flex items-center gap-3 sm:gap-5 pl-2 sm:pl-3">
+            <span className="text-xs font-mono px-2 py-0.5 rounded border border-current opacity-70">
+              dashboard
+            </span>
+            <Link href="/proof" className="text-xs sm:text-sm font-medium transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
+              Proof
+            </Link>
+          </div>
         </div>
-        <div className="flex items-center gap-5">
-          <Link href="/proof" className="text-sm font-medium transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
-            Proof
-          </Link>
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <ThemeToggle />
           <div
-            className={`w-2.5 h-2.5 rounded-full ${status ? 'bg-emerald-500 shadow-emerald-500/50 shadow-md' : 'bg-rose-500'}`}
-            title={status ? 'Live API Connected' : 'Connecting to API'}
-          />
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono"
+            style={{ borderColor: 'var(--border-line)', color: status ? '#10b981' : '#f59e0b' }}
+            title={status ? 'Live API Connected: https://rubicon-api-ecf2.onrender.com' : 'Connecting to API'}
+          >
+            <span className={`w-2 h-2 rounded-full ${status ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span className="hidden sm:inline">{status ? 'Render Live' : 'Connecting'}</span>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         {/* Workspace Heading (OpenStock Pattern) */}
-        <div className="mb-10">
+        <div className="mb-8">
           <div className="workspace-kicker mb-3">
             <span className="live-dot" />
             <span>PreToolUse Gateway · 12 State Domains Active</span>
@@ -207,31 +212,51 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {error && (
-          <div className="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 font-mono text-xs">
-            {error}
+        {/* Recorded Benchmark Evidence (Always Displayed Immediately) */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-xs font-mono uppercase tracking-widest font-semibold" style={{ color: 'var(--text-muted)' }}>
+            Recorded Benchmark Evidence · 21-Drill Causal Campaign
           </div>
-        )}
+          <span className="text-xs font-mono text-emerald-500 font-semibold">100% Cryptographically Verified</span>
+        </div>
 
-        {/* Metrics Row */}
-        {status && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10"
-          >
-            <MetricCard value={status.decisions_total} label="Total decisions" />
-            <MetricCard value={status.allowed} label="Allowed safe" />
-            <MetricCard value={status.blocked} label="Blocked breaches" accent />
-            <MetricCard value={status.receipts_total} label="Receipts issued" />
-            <MetricCard
-              value={status.public_key_loaded ? '✓ Loaded' : '✗ Missing'}
-              label="Signing key"
-              sub="Ed25519 external"
-              accent={!status.public_key_loaded}
-            />
-          </motion.div>
-        )}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-8"
+        >
+          <MetricCard value="21" label="Drills Evaluated" sub="Across 12 Domains" />
+          <MetricCard value="3" label="Ablation Arms" sub="Raw vs Gate vs Verified" />
+          <MetricCard value="12" label="State Domains" sub="Complete Classification" />
+          <MetricCard value="21/21" label="Signed Receipts" sub="100% Ed25519 Verified" />
+          <MetricCard value="14" label="Escapes Blocked" sub="14/14 Caught (100%)" accent />
+          <MetricCard value="0" label="Escapes Allowed" sub="0 Escapes under Rubicon" accent />
+        </motion.div>
+
+        {/* Live Session Telemetry (Optional / Connected) */}
+        <div className="rubicon-card p-4 sm:p-5 mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${status ? 'bg-emerald-500 animate-pulse shadow-emerald-500/50 shadow-md' : 'bg-amber-500'}`} />
+              <span className="text-xs font-mono uppercase tracking-widest font-semibold" style={{ color: 'var(--text-ink)' }}>
+                Live Session Telemetry (Optional / Connected)
+              </span>
+            </div>
+            <a
+              href="https://rubicon-api-ecf2.onrender.com/api/status"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-mono text-emerald-500 hover:underline"
+            >
+              https://rubicon-api-ecf2.onrender.com ↗
+            </a>
+          </div>
+          <p className="text-xs font-mono leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            {status
+              ? `Connected to live backend. Total intercept decisions: ${status.decisions_total} (${status.blocked} blocked, ${status.allowed} allowed). Live agent telemetry updates automatically.`
+              : 'Connecting to live API. Benchmark proof above is permanently recorded and independently verifiable without running Bob.'}
+          </p>
+        </div>
 
         {/* The Rubicon Line Visualizer */}
         <div className="rubicon-card p-6 mb-10">

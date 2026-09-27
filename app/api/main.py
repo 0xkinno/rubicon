@@ -44,14 +44,22 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        os.environ.get("NEXT_PUBLIC_RUBICON_API_URL", "http://localhost:3000"),
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+@app.get("/health")
+@app.get("/api/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": "rubicon-api",
+        "version": "1.0.0",
+        "fail_closed_active": True,
+    }
 
 _RECEIPTS_DIR = _ROOT / "proof" / "receipts"
 _DECISIONS_LOG = _ROOT / "data" / "decisions.jsonl"

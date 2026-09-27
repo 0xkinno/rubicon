@@ -28,7 +28,7 @@ class GraniteExplainer:
         self.api_key = api_key or os.environ.get("WATSONX_API_KEY", "")
         self.project_id = project_id or os.environ.get("WATSONX_PROJECT_ID", "")
         self.url = url or os.environ.get("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
-        self.model_id = model_id or os.environ.get("WATSONX_MODEL_ID", "ibm/granite-13b-instruct-v2")
+        self.model_id = model_id or os.environ.get("WATSONX_MODEL_ID", "ibm/granite-3-8b-instruct")
         self._client = None
         self._init_client()
 
