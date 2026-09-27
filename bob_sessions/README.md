@@ -28,6 +28,16 @@ All 13 tasks have been completed and cryptographically cross-verified.
 
 ---
 
+## Live Bob IDE Integration Captures
+
+In addition to the 13 completed tasks, two dedicated live integration sessions were executed and recorded directly inside the real IBM Bob IDE environment:
+
+- **[`rubicon_session_1_hook_block.png`](rubicon_session_1_hook_block.png)**: Real IBM Bob IDE session demonstrating the PreToolUse hook intercepting an unpermitted `git push origin main` command, evaluating the `VCS_REMOTE` domain outside Bob's rollback contract, and terminating with exit code 2 (`[RUBICON] BLOCKED - OUTSIDE_ROLLBACK`).
+- **[`rubicon_session_2_permit_issue.png`](rubicon_session_2_permit_issue.png)**: Real IBM Bob IDE session demonstrating operator inspection via `rubicon status` and cryptographic permit issuance via `rubicon approve --action-id ...`, generating a signed Ed25519 one-use permit bound to the action digest.
+
+
+---
+
 ## Session Metrics & Accounting Summary
 
 - **Total Recorded Tasks:** 13

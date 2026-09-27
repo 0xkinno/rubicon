@@ -76,6 +76,7 @@ htmlcov/
 # --- Temp ---
 tmp/
 temp/
+scratch/
 *.tmp
 *.bak
 *.swp

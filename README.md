@@ -20,7 +20,7 @@
 | Proof Suite | Interactive Reversibility Receipt Inspector | [rubicon-platform.vercel.app/proof](https://rubicon-platform.vercel.app/proof) |
 | API Backend | FastAPI Deterministic Engine & Receipt Server | [rubicon-api-ecf2.onrender.com](https://rubicon-api-ecf2.onrender.com) |
 | Campaign Results | Machine-readable 21-drill ablation ledger | [`proof/results.json`](proof/results.json) |
-| Video Walkthrough | Demonstration of boundary enforcement & verification | [Demo Video Link] |
+| Video Walkthrough | Demonstration of boundary enforcement & verification | [Demo Video Link](https://youtu.be/YU1U9S5XrmE?si=IGtbEQ_qYEyRLF8f) | 
 
 ## Screenshots
 
